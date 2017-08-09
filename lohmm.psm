@@ -1,0 +1,68 @@
+%%%%%%
+% Model of a Logical Hidden Markov Model
+% LM = (SIGMA, MU, DELTA, UPSILON)
+% Where
+%    SIGMA := logical alphabet
+%    MU := selection (grounding) probability over SIGMA
+%    DELTA := set of abstract transitions (p : H <- B emitting O)
+%    UPSILON := set of abstract transitions encoding a prior distribution of states
+% ---
+% Example taken from "Logical Hidden Markov Models" - Kersting, De Raedt, Raiko; Figure 1.
+%%%%%%
+
+%%------------------------------------
+%% Declarations section
+%%------------------------------------
+
+%%
+% [UPSILON] Prior distribution on starting states
+%%
+values(init, [ls('U'), emacs('F', 'U')]).
+
+%%
+% [MU] Grounding rules
+%%
+values(emacs('F', 'U'), [['NONE', emacs('f1', 'tex')], ['NONE', emacs('f1', 'other')], ['NONE', emacs('f2', 'tex')], ['NONE', emacs('f2', 'other')]]).
+values(emacs('F', U), [['NONE', emacs('f1', U)], ['NONE', emacs('f2', U)]]).
+
+values(ls('U'), [['NONE', ls('tex')], ['NONE', ls('other')]]).
+
+%%
+% [DELTA] Abstract transitions
+% Result of msw(B, [O, H]).
+% values/2 for more general B should be placed below values/2 for more specific B, implementing the subsumption constraint.
+%%
+values(emacs(F, 'tex'), [[emacs(F), ls('tex')], [emacs(F), emacs('F', 'tex')], ['NONE', stop]]).
+values(emacs(F, U), [[emacs(F), ls('U')], [emacs(F), emacs('F', U)], ['NONE', stop]]).
+
+values(ls(_), [[ls, ls('U')], [ls, emacs('F', 'U')], ['NONE', stop]]).
+
+%%------------------------------------
+%% Modeling section
+%%------------------------------------
+
+%%
+% [lohmm/2] lohmm(Output, States)
+% ---
+% Output := a list of observations emitted from the LOHMM
+% States := a list recording the state sequence of the LOHMM
+%%
+lohmm(Obs, [Ground | States]) :-   
+    msw(init, Head),                 % Pick initial abstract state
+    msw(Head, [_, Ground]),          % Ground the initial state
+    trans(Ground, Out, States),      % Transition via ground state while recording observation and state sequence
+    subtract(Out, ['NONE'], Obs),    % Beautify output
+    Obs \= [].					     % Disallow sequences to terminate without emiting some output
+
+%%
+% [trans/3] trans(Ground, Observations, States)
+% ---
+% Ground := the current ground state
+% Observations := a list of observations which has the current state emission as the head
+% States := a list of states which has the next state as the head
+%%
+trans(stop, [], []) :- !.
+
+trans(Ground, [Obs | R1], [Next | R2]) :- 
+    msw(Ground, [Obs, Next]),        % Select the abstract transition
+    trans(Next, R1, R2).             % Recurse on the next state
