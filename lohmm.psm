@@ -21,6 +21,8 @@ values(init, [ls('U'), emacs('F', 'U')]).
 
 %%
 % [MU] Grounding rules
+% Result of selection probability.
+% values/2 for more general clauses should be placed below values/2 for more specific clauses, implementing the subsumption constraint.
 %%
 
 % emacs/2
