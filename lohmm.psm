@@ -22,9 +22,12 @@ values(init, [ls('U'), emacs('F', 'U')]).
 %%
 % [MU] Grounding rules
 %%
+
+% emacs/2
 values(emacs('F', 'U'), [['NONE', emacs('f1', 'tex')], ['NONE', emacs('f1', 'other')], ['NONE', emacs('f2', 'tex')], ['NONE', emacs('f2', 'other')]]).
 values(emacs('F', U), [['NONE', emacs('f1', U)], ['NONE', emacs('f2', U)]]).
 
+% ls/1
 values(ls('U'), [['NONE', ls('tex')], ['NONE', ls('other')]]).
 
 %%
@@ -32,10 +35,16 @@ values(ls('U'), [['NONE', ls('tex')], ['NONE', ls('other')]]).
 % Result of msw(B, [O, H]).
 % values/2 for more general B should be placed below values/2 for more specific B, implementing the subsumption constraint.
 %%
-values(emacs(F, 'tex'), [[emacs(F), ls('tex')], [emacs(F), emacs('F', 'tex')], ['NONE', stop]]).
+
+% emacs/2
+values(emacs(F, 'tex'), [[emacs(F), ls('tex')], [emacs(F), emacs('F', 'tex')], [emacs(F), latex(F, 'tex')], ['NONE', stop]]).
 values(emacs(F, U), [[emacs(F), ls('U')], [emacs(F), emacs('F', U)], ['NONE', stop]]).
 
+% ls/1
 values(ls(_), [[ls, ls('U')], [ls, emacs('F', 'U')], ['NONE', stop]]).
+
+% latex/2
+values(latex(F, U), [[latex(F), ls('U')], [latex(F), emacs('F', U)], [latex(F), emacs(F, U)], ['NONE', stop]]).
 
 %%------------------------------------
 %% Modeling section
@@ -47,7 +56,8 @@ values(ls(_), [[ls, ls('U')], [ls, emacs('F', 'U')], ['NONE', stop]]).
 % Output := a list of observations emitted from the LOHMM
 % States := a list recording the state sequence of the LOHMM
 %%
-lohmm(Obs, [Ground | States]) :-   
+lohmm(Obs, [Ground | States]) :-
+	set_params,   
     msw(init, Head),                 % Pick initial abstract state
     msw(Head, [_, Ground]),          % Ground the initial state
     trans(Ground, Out, States),      % Transition via ground state while recording observation and state sequence
@@ -66,3 +76,18 @@ trans(stop, [], []) :- !.
 trans(Ground, [Obs | R1], [Next | R2]) :- 
     msw(Ground, [Obs, Next]),        % Select the abstract transition
     trans(Next, R1, R2).             % Recurse on the next state
+
+%%------------------------------------
+%% Utility section
+%%------------------------------------
+
+set_params :-
+	set_sw(init, [0.55, 0.45]),
+	set_sw(emacs('f1', 'tex'), [0.2666, 0.0666, 0.5666, 0.1]),
+	set_sw(emacs('f2', 'tex'), [0.2666, 0.0666, 0.5666, 0.1]),
+	set_sw(emacs('f1', 'other'), [0.65, 0.25, 0.1]),
+	set_sw(emacs('f2', 'other'), [0.65, 0.25, 0.1]),
+	set_sw(latex('f1', 'tex'), [0.1666, 0.5666, 0.1666, 0.1]),
+	set_sw(latex('f2', 'tex'), [0.1666, 0.5666, 0.1666, 0.1]),
+	set_sw(ls('tex'), [0.35, 0.55, 0.1]),
+	set_sw(ls('other'), [0.35, 0.55, 0.1]).
