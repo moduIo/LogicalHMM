@@ -1,0 +1,55 @@
+\documentclass[11pt, oneside]{article}   	% use "amsart" instead of "article" for AMSLaTeX format
+\usepackage{geometry}                		% See geometry.pdf to learn the layout options. There are lots.
+\geometry{letterpaper}                   		% ... or a4paper or a5paper or ... 
+%\geometry{landscape}                		% Activate for rotated page geometry
+%\usepackage[parfill]{parskip}    		% Activate to begin paragraphs with an empty line rather than an indent
+\usepackage{graphicx}				% Use pdf, png, jpg, or eps§ with pdflatex; use eps in DVI mode
+								% TeX will automatically convert eps --> pdf in pdflatex
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{algorithm}% http://ctan.org/pkg/algorithm
+\usepackage{algpseudocode}% http://ctan.org/pkg/algorithmicx
+\usepackage{mathtools,xparse}
+\usepackage{dsfont}
+%SetFonts
+
+%SetFonts
+
+
+\title{}
+\author{}
+\date{}							% Activate to display a given date or no date
+
+\begin{document}
+%\maketitle
+%\section{}
+%\subsection{}
+
+\DeclarePairedDelimiter{\norm}{\lVert}{\rVert}
+
+Abstract Transitions marked with $\star$ have one or more variables which need to be grounded in the head of the transition after having ground the body.
+
+\section{$\Upsilon$}
+$0.55: \verb!emacs(F, U)! \xleftarrow{\emptyset} \verb!start!$\\
+$0.45: \verb!ls(U)! \xleftarrow{\emptyset} \verb!start!$
+
+\section{$\Delta$}
+\subsection{emacs(F, U)}
+$0.7: \verb!ls(U!'\verb!)! \xleftarrow{\texttt{emacs(F)}} \verb!emacs(F, U)!$\\
+$0.3: \verb!emacs(F!'\verb!, U)! \xleftarrow{\texttt{emacs(F)}} \verb!emacs(F, U)!$ $\star$
+
+\subsection{emacs(F, tex)}
+$0.6: \verb!latex(F, tex)! \xleftarrow{\texttt{emacs(F)}} \verb!emacs(F, tex)!$\\
+$0.3: \verb!ls(U!'\verb!)! \xleftarrow{\texttt{emacs(F)}} \verb!emacs(F, tex)!$ $\star$\\
+$0.1: \verb!emacs(F!'\verb!, U)! \xleftarrow{\texttt{emacs(F)}} \verb!emacs(F, tex)!$ $\star$
+
+\subsection{ls(U)}
+$0.4: \verb!ls(U)! \xleftarrow{\texttt{ls}} \verb!ls(U)!$\\
+$0.6: \verb!emacs(F, U!'\verb!)! \xleftarrow{\texttt{ls}} \verb!ls(U)!$ $\star$
+
+\subsection{latex(F, U)}
+$0.2: \verb!ls(U!'\verb!)! \xleftarrow{\texttt{latex(F)}} \verb!latex(F, tex)!$ $\star$\\
+$0.2: \verb!emacs(F, tex)! \xleftarrow{\texttt{latex(F)}} \verb!latex(F, tex)!$\\
+$0.6: \verb!emacs(F!'\verb!, U)! \xleftarrow{\texttt{latex(F)}} \verb!latex(F, tex)!$ $\star$
+
+\end{document} 
