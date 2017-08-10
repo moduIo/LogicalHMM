@@ -39,7 +39,7 @@ values(ls('U'), [['NONE', ls('tex')], ['NONE', ls('other')]]).
 %%
 
 % emacs/2
-values(emacs(F, 'tex'), [[emacs(F), ls('tex')], [emacs(F), emacs('F', 'tex')], [emacs(F), latex(F, 'tex')], ['NONE', stop]]).
+values(emacs(F, 'tex'), [[emacs(F), ls('U')], [emacs(F), emacs('F', 'tex')], [emacs(F), latex(F, 'tex')], ['NONE', stop]]).
 values(emacs(F, U), [[emacs(F), ls('U')], [emacs(F), emacs('F', U)], ['NONE', stop]]).
 
 % ls/1
@@ -64,7 +64,7 @@ lohmm(Obs, [Ground | States]) :-
     msw(Head, [_, Ground]),          % Ground the initial state (ignore the output, which is 'NONE')
     trans(Ground, Out, States),      % Transition via ground state while recording observation and state sequence
     subtract(Out, ['NONE'], Obs),    % Beautify output by removing 'NONE' tokens
-    Obs \= [].					     % Disallow sequences to terminate without emiting some output
+    Obs \= [].                       % Disallow sequences to terminate without emiting some output
 
 %%
 % [trans/3] trans(Ground, Observations, States)
