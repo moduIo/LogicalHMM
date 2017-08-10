@@ -46,7 +46,7 @@ values(emacs(F, U), [[emacs(F), ls('U')], [emacs(F), emacs('F', U)], ['NONE', st
 values(ls(U), [[ls, ls(U)], [ls, emacs('F', 'U')], ['NONE', stop]]).
 
 % latex/2
-values(latex(F, U), [[latex(F), ls('U')], [latex(F), emacs('F', 'U')], [latex(F), emacs(F, U)], ['NONE', stop]]).
+values(latex(F, 'tex'), [[latex(F), ls('U')], [latex(F), emacs('F', 'U')], [latex(F), emacs(F, 'tex')], ['NONE', stop]]).
 
 %%------------------------------------
 %% Modeling section
