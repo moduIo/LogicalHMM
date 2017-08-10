@@ -39,7 +39,7 @@ values(ls('U'), [['NONE', ls('tex')], ['NONE', ls('other')]]).
 %%
 
 % emacs/2
-values(emacs(F, 'tex'), [[emacs(F), ls('U')], [emacs(F), emacs('F', 'tex')], [emacs(F), latex(F, 'tex')], ['NONE', stop]]).
+values(emacs(F, 'tex'), [[emacs(F), ls('U')], [emacs(F), emacs('F', 'U')], [emacs(F), latex(F, 'tex')], ['NONE', stop]]).
 values(emacs(F, U), [[emacs(F), ls('U')], [emacs(F), emacs('F', U)], ['NONE', stop]]).
 
 % ls/1
