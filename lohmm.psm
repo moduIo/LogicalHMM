@@ -12,18 +12,18 @@
 % Each of the LOHMM parameters are encoded via a different set of PRISM switches.
 %
 % [UPSILON]
-%     The prior distribution simply makes a choice from a set of abstract states. 
+%     * The prior distribution simply makes a choice from a set of abstract states. 
 %
 % [MU]
-%     Logical variables are encoded via uppercase string constants such as 'U' and 'F'.
+%     * Logical variables are encoded via uppercase string constants such as 'U' and 'F'.
 %     This is due to PRISM needing a ground instance of msw().
-%     Non-ground predicates are represented by abs_<pred_name> terms and each non-ground
+%     * Non-ground predicates are represented by abs_<pred_name> terms and each non-ground
 %     logical variable is ground one by one until the term is fully ground.
-%     Once a term is fully ground, a rewriting procedure removes 'abs_' from abs_<pred_name>
+%     * Once a term is fully ground, a rewriting procedure removes 'abs_' from abs_<pred_name>
 %     to allow msw() invocations from DELTA transitions.
 %
 % [DELTA]
-%     Ground predicates are represented as <pred_name> and can transition to other ground
+%     * Ground predicates are represented as <pred_name> and can transition to other ground
 %     predicates or back to abstract predicates.
 %%%%%%
 
@@ -147,7 +147,7 @@ trans(Ground, [Obs | R1], [Next | R2]) :-
 %%
 rewrite(Result, Ground) :-
 	atom_codes('abs_', Pre),         % Encode string into list of B-prolog code chars
-	term2string(Result, String),     % Translate Result into string, which is a list of B-Prolog code chars
+	term2string(Result, String),     % Translate Result into String, which is a list of B-Prolog code chars
     (  append(Pre, Name, String)     % If the String has 'abs_'
     -> parse_string(Name, Ground)    %     Return the substring with 'abs_' removed
     ;  Ground = Result               % Else use the original Result, which is already in the correct predicate form
