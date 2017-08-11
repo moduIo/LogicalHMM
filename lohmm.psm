@@ -159,8 +159,8 @@ trans(Ground, [Obs | R1], [Next | R2]) :-
 %%
 
 rewrite(Result, Ground) :-
-	atom_codes('abs_', Pre),         % Encode string into list of B-prolog code chars
-	term2string(Result, String),     % Translate Result into String, which is a list of B-Prolog code chars
+    atom_codes('abs_', Pre),         % Encode string into list of B-prolog code chars
+    term2string(Result, String),     % Translate Result into String, which is a list of B-Prolog code chars
     (  append(Pre, Name, String)     % If the String has 'abs_'
     -> parse_string(Name, Ground)    %     Return the substring with 'abs_' removed
     ;  Ground = Result               % Else use the original Result, which is already in the correct predicate form
