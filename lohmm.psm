@@ -1,5 +1,5 @@
 %%%%%%
-% Model of a Logical Hidden Markov Model
+% Model of a Logical Hidden Markov Model (LOHMM)
 % LM = (SIGMA, MU, DELTA, UPSILON)
 % Where
 %    SIGMA := logical alphabet
@@ -8,6 +8,23 @@
 %    UPSILON := set of abstract transitions encoding a prior distribution of states
 % ---
 % Example taken from "Logical Hidden Markov Models" - Kersting, De Raedt, Raiko; Figure 1.
+%
+% Each of the LOHMM parameters are encoded via a different set of PRISM switches.
+%
+% [UPSILON]
+%     The prior distribution simply makes a choice from a set of abstract states. 
+%
+% [MU]
+%     Logical variables are encoded via uppercase string constants such as 'U' and 'F'.
+%     This is due to PRISM needing a ground instance of msw().
+%     Non-ground predicates are represented by abs_<pred_name> terms and each non-ground
+%     logical variable is ground one by one until the term is fully ground.
+%     Once a term is fully ground, a rewriting procedure removes 'abs_' from abs_<pred_name>
+%     to allow msw() invocations from DELTA transitions.
+%
+% [DELTA]
+%     Ground predicates are represented as <pred_name> and can transition to other ground
+%     predicates or back to abstract predicates.
 %%%%%%
 
 %%------------------------------------
@@ -17,20 +34,19 @@
 %%
 % [UPSILON] Prior distribution on starting states
 %%
-values(init, [ls('U'), emacs('F', 'U')]).
+values(init, [abs_ls('U'), abs_emacs('F', 'U')]).
 
 %%
 % [MU] Grounding rules
 % Result of selection probability.
-% values/2 for more general clauses should be placed below values/2 for more specific clauses, implementing the subsumption constraint.
 %%
 
 % emacs/2
-values(emacs('F', 'U'), [['NONE', emacs('f1', 'tex')], ['NONE', emacs('f1', 'other')], ['NONE', emacs('f2', 'tex')], ['NONE', emacs('f2', 'other')]]).
-values(emacs('F', U), [['NONE', emacs('f1', U)], ['NONE', emacs('f2', U)]]).
+values(abs_emacs('F', U), [abs_emacs('f1', U), abs_emacs('f2', U)]).
+values(abs_emacs(F, 'U'), [abs_emacs(F, 'tex'), abs_emacs(F, 'other')]).
 
 % ls/1
-values(ls('U'), [['NONE', ls('tex')], ['NONE', ls('other')]]).
+values(abs_ls('U'), [abs_ls('tex'), abs_ls('other')]).
 
 %%
 % [DELTA] Abstract transitions
@@ -39,23 +55,27 @@ values(ls('U'), [['NONE', ls('tex')], ['NONE', ls('other')]]).
 %%
 
 % emacs/2
-values(emacs(F, 'tex'), [[emacs(F), ls('U')], [emacs(F), emacs('F', 'U')], [emacs(F), latex(F, 'tex')], ['NONE', stop]]).
-values(emacs(F, U), [[emacs(F), ls('U')], [emacs(F), emacs('F', U)], ['NONE', stop]]).
+values(emacs(F, 'tex'), [[emacs(F), abs_ls('U')], [emacs(F), abs_emacs('F', 'U')], [emacs(F), latex(F, 'tex')], ['NONE', stop]]).
+values(emacs(F, U), [[emacs(F), abs_ls('U')], [emacs(F), abs_emacs('F', U)], ['NONE', stop]]).
 
 % ls/1
-values(ls(U), [[ls, ls(U)], [ls, emacs('F', 'U')], ['NONE', stop]]).
+values(ls(U), [[ls, ls(U)], [ls, abs_emacs('F', 'U')], ['NONE', stop]]).
 
 % latex/2
-values(latex(F, 'tex'), [[latex(F), ls('U')], [latex(F), emacs('F', 'U')], [latex(F), emacs(F, 'tex')], ['NONE', stop]]).
+values(latex(F, 'tex'), [[latex(F), abs_ls('U')], [latex(F), abs_emacs('F', 'U')], [latex(F), emacs(F, 'tex')], ['NONE', stop]]).
 
 %%------------------------------------
 %% Modeling section
 %%------------------------------------
 
+l_vars(['F', 'U']).  % List of logical variables used in LOHMM
+
 %%
 % [lohmm/1] lohmm(Observations)
 % ---
 % Observations := a list of observations emitted from the LOHMM
+% ---
+% Returns the list of observations.
 %%
 lohmm(Obs) :- lohmm(Obs, _).
 
@@ -64,14 +84,36 @@ lohmm(Obs) :- lohmm(Obs, _).
 % ---
 % Observations := a list of observations emitted from the LOHMM
 % States := a list recording the state sequence of the LOHMM
+% ---
+% Returns the list of observations and state sequence.
 %%
 lohmm(Obs, [Ground | States]) :-
     set_params,   
-    msw(init, Head),                 % Pick initial abstract state
-    msw(Head, [_, Ground]),          % Ground the initial state (ignore the output, which is 'NONE')
+    msw(init, Abs),                  % Pick initial abstract state
+    select(Abs, Result),             % Ground the initial state
+    rewrite(Result, Ground),         % Rewrite result to a ground predicate
     trans(Ground, Out, States),      % Transition via ground state while recording observation and state sequence
     subtract(Out, ['NONE'], Obs),    % Beautify output by removing 'NONE' tokens
     Obs \= [].                       % Disallow sequences to terminate without emiting some output
+
+%%
+% [select/2] select(Abs, Next)
+% ---
+% Abs := partially ground abstract state
+% Next := the result of grounding a single variable in Abs
+% ---
+% Implements the selection function MU.
+% Each logical variable is ground one at a time and the recursion terminates
+% when none of the arguments to the predicate are in the set l_vars.
+%%
+select(Abs, Abs) :-
+    Abs =.. [_ | Args],              % Split the predicate to check arguments
+    l_vars(V),                       % V = {logical variables}
+    intersection(Args, V, []).       % End recursion when all logical variables are ground
+
+select(Abs, Ground) :-
+    msw(Abs, Next),                  % Partially ground the abstract state
+    select(Next, Ground).            % Recurse on the partially ground state
 
 %%
 % [trans/3] trans(Ground, Observations, States)
@@ -79,12 +121,37 @@ lohmm(Obs, [Ground | States]) :-
 % Ground := the current ground state
 % Observations := a list of observations which has the current state emission as the head
 % States := a list of states which has the next state as the head
+% ---
+% Transitions via the LOHMM rules where 
+%     first we select an abstract transition,
+%     next we ground the states (if necessary),
+%     then we recurse on the next state.
+%
+% Recursion completes when the LOHMM reaches the 'stop' state.
 %%
 trans(stop, [], []) :- !.
 
 trans(Ground, [Obs | R1], [Next | R2]) :- 
-    msw(Ground, [Obs, Next]),        % Select the abstract transition
+    msw(Ground, [Obs, Abs]),         % Select the abstract transition
+    select(Abs, Result),             % Ground the abstract transition
+    rewrite(Result, Next),           % Rewrite the predicate name to align with state transition
     trans(Next, R1, R2).             % Recurse on the next state while recording sequences
+
+%%
+% [rewrite/2] rewrite(Result, Ground)
+% ---
+% Result := the result of select/2
+% Ground := rewritten Result predicate removing 'abs_' prefix (if present)
+% ---
+% Rewrites a predicate by either removing the 'abs_' prefix or leaving the string unchanged
+%%
+rewrite(Result, Ground) :-
+	atom_codes('abs_', Pre),         % Encode string into list of B-prolog code chars
+	term2string(Result, String),     % Translate Result into string, which is a list of B-prolog code chars
+    (  append(Pre, Name, String)     % If the String has 'abs_'
+    -> parse_string(Name, Ground)    %     Take the substring with 'abs_' removed
+    ;  Ground = Result               % Else use the original Result, which is already in the correct predicate form
+    ).
 
 %%------------------------------------
 %% Utility section
