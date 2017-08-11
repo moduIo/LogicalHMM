@@ -53,9 +53,16 @@ values(latex(F, 'tex'), [[latex(F), ls('U')], [latex(F), emacs('F', 'U')], [late
 %%------------------------------------
 
 %%
-% [lohmm/2] lohmm(Output, States)
+% [lohmm/1] lohmm(Observations)
 % ---
-% Output := a list of observations emitted from the LOHMM
+% Observations := a list of observations emitted from the LOHMM
+%%
+lohmm(Obs) :- lohmm(Obs, _).
+
+%%
+% [lohmm/2] lohmm(Observations, States)
+% ---
+% Observations := a list of observations emitted from the LOHMM
 % States := a list recording the state sequence of the LOHMM
 %%
 lohmm(Obs, [Ground | States]) :-
