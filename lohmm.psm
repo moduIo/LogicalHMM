@@ -25,6 +25,13 @@
 % [DELTA]
 %     * Ground predicates are represented as <pred_name> and can transition to other ground
 %     predicates or back to abstract predicates.
+% ---
+% USAGE:
+%     * ?- sample(lohmm(Observations)).
+%     Returns a list of observations emitted from the LOHMM (or 'no' if the Observations = [])
+%
+%     * ?- sample(lohmm(Observations, States)).
+%     Returns a list of observations emitted and states traversed via the LOHMM (or 'no' if the Observations = [])
 %%%%%%
 
 %%------------------------------------
