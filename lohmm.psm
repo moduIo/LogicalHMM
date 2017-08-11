@@ -28,10 +28,10 @@
 % ---
 % USAGE:
 %     * ?- sample(lohmm(Observations)).
-%     Returns a list of observations emitted from the LOHMM (or 'no' if the Observations = [])
+%     Returns a list of observations emitted from the LOHMM (or 'no' if Observations = [])
 %
 %     * ?- sample(lohmm(Observations, States)).
-%     Returns a list of observations emitted and states traversed via the LOHMM (or 'no' if the Observations = [])
+%     Returns a list of observations emitted and states traversed via the LOHMM (or 'no' if Observations = [])
 %%%%%%
 
 %%------------------------------------
@@ -41,6 +41,7 @@
 %%
 % [UPSILON] Prior distribution on starting states
 %%
+
 values(init, [abs_ls('U'), abs_emacs('F', 'U')]).
 
 %%
@@ -84,6 +85,7 @@ l_vars(['F', 'U']).  % List of logical variables used in LOHMM
 % ---
 % Returns the list of observations.
 %%
+
 lohmm(Obs) :- lohmm(Obs, _).
 
 %%
@@ -94,6 +96,7 @@ lohmm(Obs) :- lohmm(Obs, _).
 % ---
 % Returns the list of observations and state sequence.
 %%
+
 lohmm(Obs, [Ground | States]) :-
     set_params,
     msw(init, Abs),                  % Pick initial abstract state
@@ -113,8 +116,9 @@ lohmm(Obs, [Ground | States]) :-
 % Each logical variable is ground one at a time and the recursion terminates
 % when none of the arguments to the predicate are in the set l_vars.
 %%
+
 select(Abs, Abs) :-
-    Abs =.. [_ | Args],              % Split the predicate to check arguments
+    Abs =.. [_ | Args],              % Split the predicate into [Name | Args] to check arguments
     l_vars(V),                       % V = {logical variables}
     intersection(Args, V, []).       % End recursion when all logical variables are ground
 
@@ -136,6 +140,7 @@ select(Abs, Ground) :-
 %
 % Recursion completes when the LOHMM reaches the 'stop' state.
 %%
+
 trans(stop, [], []) :- !.
 
 trans(Ground, [Obs | R1], [Next | R2]) :- 
@@ -152,6 +157,7 @@ trans(Ground, [Obs | R1], [Next | R2]) :-
 % ---
 % Rewrites a predicate by either removing the 'abs_' prefix or leaving the string unchanged
 %%
+
 rewrite(Result, Ground) :-
 	atom_codes('abs_', Pre),         % Encode string into list of B-prolog code chars
 	term2string(Result, String),     % Translate Result into String, which is a list of B-Prolog code chars
