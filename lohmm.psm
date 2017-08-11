@@ -88,13 +88,13 @@ lohmm(Obs) :- lohmm(Obs, _).
 % Returns the list of observations and state sequence.
 %%
 lohmm(Obs, [Ground | States]) :-
-    set_params,   
+    set_params,
     msw(init, Abs),                  % Pick initial abstract state
     select(Abs, Result),             % Ground the initial state
     rewrite(Result, Ground),         % Rewrite result to a ground predicate
     trans(Ground, Out, States),      % Transition via ground state while recording observation and state sequence
     subtract(Out, ['NONE'], Obs),    % Beautify output by removing 'NONE' tokens
-    Obs \= [].                       % Disallow sequences to terminate without emiting some output
+    !, Obs \= [].                    % Disallow sequences to terminate without emiting some output
 
 %%
 % [select/2] select(Abs, Next)
@@ -147,9 +147,9 @@ trans(Ground, [Obs | R1], [Next | R2]) :-
 %%
 rewrite(Result, Ground) :-
 	atom_codes('abs_', Pre),         % Encode string into list of B-prolog code chars
-	term2string(Result, String),     % Translate Result into string, which is a list of B-prolog code chars
+	term2string(Result, String),     % Translate Result into string, which is a list of B-Prolog code chars
     (  append(Pre, Name, String)     % If the String has 'abs_'
-    -> parse_string(Name, Ground)    %     Take the substring with 'abs_' removed
+    -> parse_string(Name, Ground)    %     Return the substring with 'abs_' removed
     ;  Ground = Result               % Else use the original Result, which is already in the correct predicate form
     ).
 
