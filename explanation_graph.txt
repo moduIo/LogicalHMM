@@ -1,145 +1,49 @@
-probfi(lohmm([emacs(f1), 'STOP']), G).
-TOTAL PROBABILITY: 0.00515588
----
+?- probfi(lohmm([ls, 'STOP']), G).
+G = [node(lohmm([ls,'STOP']),
 
-node(lohmm([emacs(f1),'STOP']), [
+[path([gnode(lohmm([ls,'STOP'],[ls(tex),ls(tex),stop]),0.009625)],[],0.009625),
 
-    path([gnode(lohmm([emacs(f1),'STOP'],[emacs(f1,tex),ls(tex),stop]),0.00149963)],[],0.00149963),
+path([gnode(lohmm([ls,'STOP'],[ls(tex),emacs(f1,tex),stop]),0.00378125)],[],0.00378125),
 
-    path([gnode(lohmm([emacs(f1),'STOP'],[emacs(f1,other),ls(tex),stop]),0.00365625)],[],0.00365625)
+path([gnode(lohmm([ls,'STOP'],[ls(tex),emacs(f1,other),stop]),0.00378125)],[],0.00378125),
 
-], 0.00515588),
+path([gnode(lohmm([ls,'STOP'],[ls(tex),emacs(f2,tex),stop]),0.00378125)],[],0.00378125),
 
-node(lohmm([emacs(f1),'STOP'],[emacs(f1,tex),ls(tex),stop]), [
+path([gnode(lohmm([ls,'STOP'],[ls(tex),emacs(f2,other),stop]),0.00378125)],[],0.00378125),
 
-    path(
-        [
-            gnode(select(abs_emacs('F','U'),abs_emacs(f1,tex)),0.25),
-            gnode(trans(emacs(f1,tex),[emacs(f1),'STOP'],[ls(tex),stop]),0.01333)
-        ],
-        [snode(msw(init,abs_emacs('F','U')),0.45)],0.00149963
-    )
-], 0.00149963),
+path([gnode(lohmm([ls,'STOP'],[ls(other),ls(other),stop]),0.009625)],[],0.009625),
 
-node(trans(emacs(f1,tex),[emacs(f1),'STOP'],[ls(tex),stop]), [
+path([gnode(lohmm([ls,'STOP'],[ls(other),emacs(f1,tex),stop]),0.00378125)],[],0.00378125),
 
-    path(
-        [
-            gnode(select(abs_ls('U'),abs_ls(tex)),0.5),
-            gnode(trans(ls(tex),['STOP'],[stop]),0.1)
-        ],
-        [snode(msw(emacs(f1,tex),[emacs(f1),abs_ls('U')]),0.2666)],0.01333
-    )
+path([gnode(lohmm([ls,'STOP'],[ls(other),emacs(f1,other),stop]),0.00378125)],[],0.00378125),
 
-], 0.01333),
+path([gnode(lohmm([ls,'STOP'],[ls(other),emacs(f2,tex),stop]),0.00378125)],[],0.00378125),
 
-node(select(abs_emacs('F','U'),abs_emacs(f1,tex)),[
+path([gnode(lohmm([ls,'STOP'],[ls(other),emacs(f2,other),stop]),0.00378125)],[],0.00378125)],
 
-    path(
-        [gnode(select(abs_emacs(f1,'U'),abs_emacs(f1,tex)),0.5)],
-        [snode(msw(abs_emacs('F','U'),abs_emacs(f1,'U')),0.5)],0.25
-    )
+0.0495)
 
-], 0.25),
+?- probfi(lohmm([emacs(f1), 'STOP']), G).
+G = [node(lohmm([emacs(f1),'STOP']),
 
-node(select(abs_emacs(f1,'U'),abs_emacs(f1,tex)),[
-    
-    path(
-        [gnode(select(abs_emacs(f1,tex),abs_emacs(f1,tex)),1.0)],
-        [snode(msw(abs_emacs(f1,'U'),abs_emacs(f1,tex)),0.5)],0.5
-    )
+[path([gnode(lohmm([emacs(f1),'STOP'],[emacs(f1,tex),ls(tex),stop]),0.00149963)],[],0.00149963),
 
-], 0.5),
+path([gnode(lohmm([emacs(f1),'STOP'],[emacs(f1,tex),ls(other),stop]),0.00149963)],[],0.00149963),
 
-node(select(abs_emacs(f1,tex),abs_emacs(f1,tex)),[
-    
-    path([],[],1.0)
+path([gnode(lohmm([emacs(f1),'STOP'],[emacs(f1,tex),emacs(f1,tex),stop]),0.000187313)],[],0.000187313),
 
-], 1.0),
+path([gnode(lohmm([emacs(f1),'STOP'],[emacs(f1,tex),emacs(f1,other),stop]),0.000187313)],[],0.000187313),
 
-node(lohmm([emacs(f1),'STOP'],[emacs(f1,other),ls(tex),stop]), [
+path([gnode(lohmm([emacs(f1),'STOP'],[emacs(f1,tex),emacs(f2,tex),stop]),0.000187313)],[],0.000187313),
 
-    path(
-        [
-            gnode(select(abs_emacs('F','U'),abs_emacs(f1,other)),0.25),
-            gnode(trans(emacs(f1,other),[emacs(f1),'STOP'],[ls(tex),stop]),0.0325)
-        ],
-        [snode(msw(init,abs_emacs('F','U')),0.45)],0.00365625
-    )
+path([gnode(lohmm([emacs(f1),'STOP'],[emacs(f1,tex),emacs(f2,other),stop]),0.000187313)],[],0.000187313),
 
-], 0.00365625),
+path([gnode(lohmm([emacs(f1),'STOP'],[emacs(f1,tex),latex(f1,tex),stop]),0.00637425)],[],0.00637425),
 
-node(trans(emacs(f1,other),[emacs(f1),'STOP'],[ls(tex),stop]),[
+path([gnode(lohmm([emacs(f1),'STOP'],[emacs(f1,other),ls(tex),stop]),0.00365625)],[],0.00365625),
 
-    path(
-        [
-            gnode(select(abs_ls('U'),abs_ls(tex)),0.5),
-            gnode(trans(ls(tex),['STOP'],[stop]),0.1)
-        ],
-        [snode(msw(emacs(f1,other),[emacs(f1),abs_ls('U')]),0.65)],0.0325
-    )
+path([gnode(lohmm([emacs(f1),'STOP'],[emacs(f1,other),ls(other),stop]),0.00365625)],[],0.00365625),
 
-], 0.0325),
+path([gnode(lohmm([emacs(f1),'STOP'],[emacs(f1,other),emacs(f1,other),stop]),0.00140625)],[],0.00140625),
 
-node(trans(ls(tex),['STOP'],[stop]), [
-    
-    path(
-        [
-            gnode(select(stop,stop),1.0),
-            gnode(trans(stop,[],[]),1.0)
-        ],
-        [snode(msw(ls(tex),['STOP',stop]),0.1)],0.1
-    )
-
-], 0.1),
-
-node(trans(stop,[],[]),[
-
-    path([],[],1.0)
-
-], 1.0),
-
-node(select(stop,stop),[
-
-    path([],[],1.0)
-
-], 1.0),
-
-node(select(abs_ls('U'),abs_ls(tex)), [
-
-    path(
-        [gnode(select(abs_ls(tex),abs_ls(tex)),1.0)],
-        [snode(msw(abs_ls('U'),abs_ls(tex)),0.5)],0.5
-    )
-
-], 0.5),
-
-node(select(abs_ls(tex),abs_ls(tex)),[
-
-    path([],[],1.0)
-
-], 1.0),
-
-node(select(abs_emacs('F','U'),abs_emacs(f1,other)), [
-
-    path(
-        [gnode(select(abs_emacs(f1,'U'),abs_emacs(f1,other)),0.5)],
-        [snode(msw(abs_emacs('F','U'),abs_emacs(f1,'U')),0.5)],0.25
-    )
-
-], 0.25),
-
-node(select(abs_emacs(f1,'U'),abs_emacs(f1,other)), [
-
-    path(
-        [gnode(select(abs_emacs(f1,other),abs_emacs(f1,other)),1.0)],
-        [snode(msw(abs_emacs(f1,'U'),abs_emacs(f1,other)),0.5)],0.5
-    )
-
-], 0.5),
-
-node(select(abs_emacs(f1,other),abs_emacs(f1,other)), [
-
-    path([],[],1.0)
-
-], 1.0)
+path([gnode(lohmm([emacs(f1),'STOP'],[emacs(f1,other),emacs(f2,other),stop]),0.00140625)],[],0.00140625)],0.0202478)
