@@ -41,7 +41,6 @@
 %%
 % [UPSILON] Prior distribution on starting states
 %%
-
 values(init, [abs_ls('U'), abs_emacs('F', 'U')]).
 
 %%
@@ -63,14 +62,14 @@ values(abs_ls('U'), [abs_ls('tex'), abs_ls('other')]).
 %%
 
 % emacs/2
-values(emacs(F, 'tex'), [[emacs(F), abs_ls('U')], [emacs(F), abs_emacs('F', 'U')], [emacs(F), latex(F, 'tex')], ['NONE', stop]]).
-values(emacs(F, U), [[emacs(F), abs_ls('U')], [emacs(F), abs_emacs('F', U)], ['NONE', stop]]).
+values(emacs(F, 'tex'), [[emacs(F), abs_ls('U')], [emacs(F), abs_emacs('F', 'U')], [emacs(F), latex(F, 'tex')], ['STOP', stop]]).
+values(emacs(F, U), [[emacs(F), abs_ls('U')], [emacs(F), abs_emacs('F', U)], ['STOP', stop]]).
 
 % ls/1
-values(ls(U), [[ls, ls(U)], [ls, abs_emacs('F', 'U')], ['NONE', stop]]).
+values(ls(U), [[ls, ls(U)], [ls, abs_emacs('F', 'U')], ['STOP', stop]]).
 
 % latex/2
-values(latex(F, 'tex'), [[latex(F), abs_ls('U')], [latex(F), abs_emacs('F', 'U')], [latex(F), emacs(F, 'tex')], ['NONE', stop]]).
+values(latex(F, 'tex'), [[latex(F), abs_ls('U')], [latex(F), abs_emacs('F', 'U')], [latex(F), emacs(F, 'tex')], ['STOP', stop]]).
 
 %%------------------------------------
 %% Modeling section
@@ -85,7 +84,6 @@ l_vars(['F', 'U']).  % List of logical variables used in LOHMM
 % ---
 % Returns the list of observations.
 %%
-
 lohmm(Obs) :- lohmm(Obs, _).
 
 %%
@@ -96,15 +94,13 @@ lohmm(Obs) :- lohmm(Obs, _).
 % ---
 % Returns the list of observations and state sequence.
 %%
-
 lohmm(Obs, [Ground | States]) :-
     set_params,
     msw(init, Abs),                  % Pick initial abstract state
     select(Abs, Result),             % Ground the initial state
     rewrite(Result, Ground),         % Rewrite result to a ground predicate
-    trans(Ground, Out, States),      % Transition via ground state while recording observation and state sequence
-    subtract(Out, ['NONE'], Obs),    % Beautify output by removing 'NONE' tokens
-    !, Obs \= [].                    % Disallow sequences to terminate without emiting some output
+    trans(Ground, Obs, States),      % Transition via ground state while recording observation and state sequence
+    !, Obs \= ['STOP'].              % Disallow sequences to terminate without emiting some output
 
 %%
 % [select/2] select(Abs, Next)
@@ -116,11 +112,10 @@ lohmm(Obs, [Ground | States]) :-
 % Each logical variable is ground one at a time and the recursion terminates
 % when none of the arguments to the predicate are in the set l_vars.
 %%
-
 select(Abs, Abs) :-
     Abs =.. [_ | Args],              % Split the predicate into [Name | Args] to check arguments
     l_vars(V),                       % V = {logical variables}
-    intersection(Args, V, []).       % End recursion when all logical variables are ground
+    intersection(Args, V, []), !.    % End recursion if all logical variables are ground
 
 select(Abs, Ground) :-
     msw(Abs, Next),                  % Partially ground the abstract state
@@ -140,14 +135,13 @@ select(Abs, Ground) :-
 %
 % Recursion completes when the LOHMM reaches the 'stop' state.
 %%
-
 trans(stop, [], []) :- !.
 
-trans(Ground, [Obs | R1], [Next | R2]) :- 
+trans(Ground, [Obs | R1], [Next | R2]) :-
     msw(Ground, [Obs, Abs]),         % Select the abstract transition
     select(Abs, Result),             % Ground the abstract transition
     rewrite(Result, Next),           % Rewrite the predicate name to align with state transition
-    trans(Next, R1, R2).             % Recurse on the next state while recording sequences
+    trans(Next, R1, R2), !.          % Recurse on the next state while recording sequences
 
 %%
 % [rewrite/2] rewrite(Result, Ground)
@@ -157,9 +151,8 @@ trans(Ground, [Obs | R1], [Next | R2]) :-
 % ---
 % Rewrites a predicate by either removing the 'abs_' prefix or leaving the string unchanged
 %%
-
 rewrite(Result, Ground) :-
-    atom_codes('abs_', Pre),         % Encode string into list of B-prolog code chars
+    atom_codes('abs_', Pre),         % Encode string into list of B-Prolog code chars
     term2string(Result, String),     % Translate Result into String, which is a list of B-Prolog code chars
     (  append(Pre, Name, String)     % If the String has 'abs_'
     -> parse_string(Name, Ground)    %     Return the substring with 'abs_' removed
@@ -171,12 +164,12 @@ rewrite(Result, Ground) :-
 %%------------------------------------
 
 set_params :-
-	set_sw(init, [0.55, 0.45]),
-	set_sw(emacs('f1', 'tex'), [0.2666, 0.0666, 0.5666, 0.1]),
-	set_sw(emacs('f2', 'tex'), [0.2666, 0.0666, 0.5666, 0.1]),
-	set_sw(emacs('f1', 'other'), [0.65, 0.25, 0.1]),
-	set_sw(emacs('f2', 'other'), [0.65, 0.25, 0.1]),
-	set_sw(latex('f1', 'tex'), [0.1666, 0.5666, 0.1666, 0.1]),
-	set_sw(latex('f2', 'tex'), [0.1666, 0.5666, 0.1666, 0.1]),
-	set_sw(ls('tex'), [0.35, 0.55, 0.1]),
-	set_sw(ls('other'), [0.35, 0.55, 0.1]).
+    set_sw(init, [0.55, 0.45]),
+    set_sw(emacs('f1', 'tex'), [0.2666, 0.0666, 0.5666, 0.1]),
+    set_sw(emacs('f2', 'tex'), [0.2666, 0.0666, 0.5666, 0.1]),
+    set_sw(emacs('f1', 'other'), [0.65, 0.25, 0.1]),
+    set_sw(emacs('f2', 'other'), [0.65, 0.25, 0.1]),
+    set_sw(latex('f1', 'tex'), [0.1666, 0.5666, 0.1666, 0.1]),
+    set_sw(latex('f2', 'tex'), [0.1666, 0.5666, 0.1666, 0.1]),
+    set_sw(ls('tex'), [0.35, 0.55, 0.1]),
+    set_sw(ls('other'), [0.35, 0.55, 0.1]).
