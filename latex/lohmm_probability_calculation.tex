@@ -1,0 +1,76 @@
+\documentclass[11pt, oneside]{article}   	% use "amsart" instead of "article" for AMSLaTeX format
+\usepackage{geometry}                		% See geometry.pdf to learn the layout options. There are lots.
+\geometry{letterpaper}                   		% ... or a4paper or a5paper or ... 
+%\geometry{landscape}                		% Activate for rotated page geometry
+%\usepackage[parfill]{parskip}    		% Activate to begin paragraphs with an empty line rather than an indent
+\usepackage{graphicx}				% Use pdf, png, jpg, or eps§ with pdflatex; use eps in DVI mode
+								% TeX will automatically convert eps --> pdf in pdflatex
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{algorithm}% http://ctan.org/pkg/algorithm
+\usepackage{algpseudocode}% http://ctan.org/pkg/algorithmicx
+\usepackage{mathtools,xparse}
+\usepackage{dsfont}
+%SetFonts
+
+%SetFonts
+
+
+\title{}
+\author{}
+\date{}							% Activate to display a given date or no date
+
+\begin{document}
+%\maketitle
+%\section{}
+%\subsection{}
+
+Manual calculation of probability for query \verb!?- prob(lohmm([emacs(f1), 'STOP'])! with 0.0202478 probability computed by the PRISM system.
+
+Formal LOHMM rules are given with parameters as set in \verb!lohmm.psm! where the grounding probabilities $\mu$ are set to $0.5$ by default.
+
+\section{Explanation Calculations}
+Since all proofs will begin with \verb!start! $\rightarrow$ \verb!emacs(F, U)! followed by grounding to the form \verb!emacs(f1, U)! and given the fact that all proofs will end with a $.1$ probability transition to \verb!stop!, we have probability $.45 \times .5 \times .1 = .0225$ which can be pulled out of the subsequent summation.
+
+Additionally there is a probability of $.5$ to ground \verb!U! to either \verb!tex! or \verb!other!, this can also be removed from the summation giving a total of $.01125$ factored out.
+
+\subsection{emacs(f1, tex)}
+$P($\verb!emacs(f1, tex)! $\rightarrow$ \verb!ls(U)!$) = .2666$\\
+$P($\verb!emacs(f1, tex)! $\rightarrow$ \verb!emacs(F, U)!$) = .0666$\\
+$P($\verb!emacs(f1, tex)! $\rightarrow$ \verb!latex(F, U)!$) = .5666$
+
+\subsection{emacs(f1, other)}
+$P($\verb!emacs(f1, other)! $\rightarrow$ \verb!ls(U)!$) = .65$\\
+$P($\verb!emacs(f1, other)! $\rightarrow$ \verb!emacs(F, U)!$) = .25$\\
+
+\subsection{Total Probability}
+$.01125 \times (.2666 + .0666 + .5666 + .65 + .25) = .02024775$ which is the same as the answer returned by PRISM.
+
+\section{$\Upsilon$}
+$0.55: \verb!emacs(F, U)! \xleftarrow{\emptyset} \verb!start!$\\
+$0.45: \verb!ls(U)! \xleftarrow{\emptyset} \verb!start!$
+
+\section{$\Delta$}
+\subsection{emacs(F, U)}
+$0.65: \verb!ls(U!'\verb!)! \xleftarrow{\texttt{emacs(F)}} \verb!emacs(F, U)!$\\
+$0.25: \verb!emacs(F!'\verb!, U)! \xleftarrow{\texttt{emacs(F)}} \verb!emacs(F, U)!$\\
+$0.1: \verb!stop! \xleftarrow{\texttt{STOP}} \verb!emacs(F, U)!$
+
+\subsection{emacs(F, tex)}
+$0.5666: \verb!latex(F, tex)! \xleftarrow{\texttt{emacs(F)}} \verb!emacs(F, tex)!$\\
+$0.2666: \verb!ls(U!'\verb!)! \xleftarrow{\texttt{emacs(F)}} \verb!emacs(F, tex)!$\\
+$0.0666: \verb!emacs(F!'\verb!, U)! \xleftarrow{\texttt{emacs(F)}} \verb!emacs(F, tex)!$\\
+$0.1: \verb!stop! \xleftarrow{\texttt{STOP}} \verb!emacs(F, U)!$
+
+\subsection{ls(U)}
+$0.35: \verb!ls(U)! \xleftarrow{\texttt{ls}} \verb!ls(U)!$\\
+$0.55: \verb!emacs(F, U!'\verb!)! \xleftarrow{\texttt{ls}} \verb!ls(U)!$\\
+$0.1: \verb!stop! \xleftarrow{\texttt{STOP}} \verb!emacs(F, U)!$
+
+\subsection{latex(F, U)}
+$0.1666: \verb!ls(U!'\verb!)! \xleftarrow{\texttt{latex(F)}} \verb!latex(F, tex)!$\\
+$0.1666: \verb!emacs(F, tex)! \xleftarrow{\texttt{latex(F)}} \verb!latex(F, tex)!$\\
+$0.5666: \verb!emacs(F!'\verb!, U)! \xleftarrow{\texttt{latex(F)}} \verb!latex(F, tex)!$\\
+$0.1: \verb!stop! \xleftarrow{\texttt{STOP}} \verb!emacs(F, U)!$
+
+\end{document} 

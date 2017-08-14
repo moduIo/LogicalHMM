@@ -1,6 +1,6 @@
 ?- probfi(lohmm([ls, 'STOP']), G).
 G = [node(lohmm([ls,'STOP']),
-
+43333333333
 [path([gnode(lohmm([ls,'STOP'],[ls(tex),ls(tex),stop]),0.009625)],[],0.009625),
 
 path([gnode(lohmm([ls,'STOP'],[ls(tex),emacs(f1,tex),stop]),0.00378125)],[],0.00378125),
@@ -46,4 +46,6 @@ path([gnode(lohmm([emacs(f1),'STOP'],[emacs(f1,other),ls(other),stop]),0.0036562
 
 path([gnode(lohmm([emacs(f1),'STOP'],[emacs(f1,other),emacs(f1,other),stop]),0.00140625)],[],0.00140625),
 
-path([gnode(lohmm([emacs(f1),'STOP'],[emacs(f1,other),emacs(f2,other),stop]),0.00140625)],[],0.00140625)],0.0202478)
+path([gnode(lohmm([emacs(f1),'STOP'],[emacs(f1,other),emacs(f2,other),stop]),0.00140625)],[],0.00140625)],
+
+0.0202478)
