@@ -141,7 +141,7 @@ trans(Ground, [Obs | R1], [Next | R2]) :-
     msw(Ground, [Obs, Abs]),         % Select the abstract transition
     select(Abs, Result),             % Ground the abstract transition
     rewrite(Result, Next),           % Rewrite the predicate name to align with state transition
-    trans(Next, R1, R2), !.          % Recurse on the next state while recording sequences
+    trans(Next, R1, R2).             % Recurse on the next state while recording sequences
 
 %%
 % [rewrite/2] rewrite(Result, Ground)
