@@ -100,7 +100,7 @@ lohmm(Obs, [Ground | States]) :-
     select(Abs, Result),             % Ground the initial state
     rewrite(Result, Ground),         % Rewrite result to a ground predicate
     trans(Ground, Obs, States),      % Transition via ground state while recording observation and state sequence
-    !, Obs \= ['STOP'].              % Disallow sequences to terminate without emiting some output
+    Obs \= ['STOP'].                 % Disallow sequences to terminate without emiting some output
 
 %%
 % [select/2] select(Abs, Next)
