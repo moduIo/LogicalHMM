@@ -28,10 +28,10 @@
 % ---
 % USAGE:
 %     * ?- sample(lohmm(Observations)).
-%     Returns a list of observations emitted from the LOHMM (or 'no' if Observations = [])
+%     Returns a list of observations emitted from the LOHMM (or 'no' if Observations = ['STOP'])
 %
 %     * ?- sample(lohmm(Observations, States)).
-%     Returns a list of observations emitted and states traversed via the LOHMM (or 'no' if Observations = [])
+%     Returns a list of observations emitted and states traversed via the LOHMM (or 'no' if Observations = ['STOP'])
 %%%%%%
 
 %%------------------------------------
@@ -97,8 +97,7 @@ lohmm(Obs) :- lohmm(Obs, _).
 lohmm(Obs, [Ground | States]) :-
     set_params,
     msw(init, Abs),                  % Pick initial abstract state
-    select(Abs, Result),             % Ground the initial state
-    rewrite(Result, Ground),         % Rewrite result to a ground predicate
+    select(Abs, Ground),             % Ground the initial state
     trans(Ground, Obs, States),      % Transition via ground state while recording observation and state sequence
     Obs \= ['STOP'].                 % Disallow sequences to terminate without emiting some output
 
@@ -112,10 +111,11 @@ lohmm(Obs, [Ground | States]) :-
 % Each logical variable is ground one at a time and the recursion terminates
 % when none of the arguments to the predicate are in the set l_vars.
 %%
-select(Abs, Abs) :-
+select(Abs, Ground) :-
     Abs =.. [_ | Args],              % Split the predicate into [Name | Args] to check arguments
     l_vars(V),                       % V = {logical variables}
-    intersection(Args, V, []), !.    % End recursion if all logical variables are ground
+    intersection(Args, V, []),       % End recursion if all logical variables are ground
+    rewrite(Abs, Ground), !.         % Rewrite result to a ground predicate
 
 select(Abs, Ground) :-
     msw(Abs, Next),                  % Partially ground the abstract state
@@ -139,8 +139,7 @@ trans(stop, [], []) :- !.
 
 trans(Ground, [Obs | R1], [Next | R2]) :-
     msw(Ground, [Obs, Abs]),         % Select the abstract transition
-    select(Abs, Result),             % Ground the abstract transition
-    rewrite(Result, Next),           % Rewrite the predicate name to align with state transition
+    select(Abs, Next),               % Ground the abstract transition
     trans(Next, R1, R2).             % Recurse on the next state while recording sequences
 
 %%
