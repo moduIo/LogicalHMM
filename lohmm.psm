@@ -17,13 +17,11 @@
 % [MU]
 %     * Logical variables are encoded via uppercase string constants such as 'U' and 'F'.
 %     This is due to PRISM needing a ground instance of msw().
-%     * Non-ground predicates are represented by abs_<pred_name> terms and each non-ground
+%     * Non-ground predicates are represented by abs(Predicate) terms and each non-ground
 %     logical variable is ground one by one until the term is fully ground.
-%     * Once a term is fully ground, a rewriting procedure removes 'abs_' from abs_<pred_name>
-%     to allow msw() invocations from DELTA transitions.
 %
 % [DELTA]
-%     * Ground predicates are represented as <pred_name> and can transition to other ground
+%     * Ground predicates are represented as Predicate and can transition to other ground
 %     predicates or back to abstract predicates.
 % ---
 % USAGE:
@@ -41,7 +39,7 @@
 %%
 % [UPSILON] Prior distribution on starting states
 %%
-values(init, [abs_ls('U'), abs_emacs('F', 'U')]).
+values(init, [abs(ls('U')), abs(emacs('F', 'U'))]).
 
 %%
 % [MU] Grounding rules
@@ -49,11 +47,11 @@ values(init, [abs_ls('U'), abs_emacs('F', 'U')]).
 %%
 
 % emacs/2
-values(abs_emacs('F', U), [abs_emacs('f1', U), abs_emacs('f2', U)]).
-values(abs_emacs(F, 'U'), [abs_emacs(F, 'tex'), abs_emacs(F, 'other')]).
+values(abs(emacs('F', U)), [abs(emacs('f1', U)), abs(emacs('f2', U))]).
+values(abs(emacs(F, 'U')), [abs(emacs(F, 'tex')), abs(emacs(F, 'other'))]).
 
 % ls/1
-values(abs_ls('U'), [abs_ls('tex'), abs_ls('other')]).
+values(abs(ls('U')), [abs(ls('tex')), abs(ls('other'))]).
 
 %%
 % [DELTA] Abstract transitions
@@ -62,14 +60,14 @@ values(abs_ls('U'), [abs_ls('tex'), abs_ls('other')]).
 %%
 
 % emacs/2
-values(emacs(F, 'tex'), [[emacs(F), abs_ls('U')], [emacs(F), abs_emacs('F', 'U')], [emacs(F), latex(F, 'tex')], ['STOP', stop]]).
-values(emacs(F, U), [[emacs(F), abs_ls('U')], [emacs(F), abs_emacs('F', U)], ['STOP', stop]]).
+values(emacs(F, 'tex'), [[emacs(F), abs(ls('U'))], [emacs(F), abs(emacs('F', 'U'))], [emacs(F), abs(latex(F, 'tex'))], ['STOP', abs(stop)]]).
+values(emacs(F, U), [[emacs(F), abs(ls('U'))], [emacs(F), abs(emacs('F', U))], ['STOP', abs(stop)]]).
 
 % ls/1
-values(ls(U), [[ls, ls(U)], [ls, abs_emacs('F', 'U')], ['STOP', stop]]).
+values(ls(U), [[ls, abs(ls(U))], [ls, abs(emacs('F', 'U'))], ['STOP', abs(stop)]]).
 
 % latex/2
-values(latex(F, 'tex'), [[latex(F), abs_ls('U')], [latex(F), abs_emacs('F', 'U')], [latex(F), emacs(F, 'tex')], ['STOP', stop]]).
+values(latex(F, 'tex'), [[latex(F), abs(ls('U'))], [latex(F), abs(emacs('F', 'U'))], [latex(F), abs(emacs(F, 'tex'))], ['STOP', abs(stop)]]).
 
 %%------------------------------------
 %% Modeling section
@@ -111,11 +109,10 @@ lohmm(Obs, [Ground | States]) :-
 % Each logical variable is ground one at a time and the recursion terminates
 % when none of the arguments to the predicate are in the set l_vars.
 %%
-select(Abs, Ground) :-
-    Abs =.. [_ | Args],              % Split the predicate into [Name | Args] to check arguments
+select(abs(Ground), Ground) :-
+    Ground =.. [_ | Args],           % Split the predicate into [Name | Args] to check arguments
     l_vars(V),                       % V = {logical variables}
-    intersection(Args, V, []),       % End recursion if all logical variables are ground
-    rewrite(Abs, Ground), !.         % Rewrite result to a ground predicate
+    intersection(Args, V, []), !.    % End recursion if all logical variables are ground
 
 select(Abs, Ground) :-
     msw(Abs, Next),                  % Partially ground the abstract state
@@ -141,22 +138,6 @@ trans(Ground, [Obs | R1], [Next | R2]) :-
     msw(Ground, [Obs, Abs]),         % Select the abstract transition
     select(Abs, Next),               % Ground the abstract transition
     trans(Next, R1, R2).             % Recurse on the next state while recording sequences
-
-%%
-% [rewrite/2] rewrite(Result, Ground)
-% ---
-% Result := the result of select/2
-% Ground := rewritten Result predicate removing 'abs_' prefix (if present)
-% ---
-% Rewrites a predicate by either removing the 'abs_' prefix or leaving the string unchanged
-%%
-rewrite(Result, Ground) :-
-    atom_codes('abs_', Pre),         % Encode string into list of B-Prolog code chars
-    term2string(Result, String),     % Translate Result into String, which is a list of B-Prolog code chars
-    (  append(Pre, Name, String)     % If the String has 'abs_'
-    -> parse_string(Name, Ground)    %     Return the substring with 'abs_' removed
-    ;  Ground = Result               % Else use the original Result, which is already in the correct predicate form
-    ).
 
 %%------------------------------------
 %% Utility section
