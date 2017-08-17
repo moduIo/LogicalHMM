@@ -113,11 +113,9 @@ lohmm(Obs) :- lohmm(Obs, _).
 % Returns the list of observations and state sequence.
 %%
 lohmm(Obs, [Ground | States]) :-
-    print('At the start...'), nl,
+    print('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'), nl,
     set_params,
     msw(init, Abs),                  % Pick initial abstract state
-
-    print('init = '), print(Abs), nl,
     
     select(Abs, Ground),             % Ground the initial state
 
@@ -142,12 +140,23 @@ select(abs(Ground), Ground) :-
     intersection(Args, V, []), !.    % End recursion if all logical variables are ground
 
 select(Abs, Ground) :-
-    msw(Abs, X),                     % Partially ground the abstract state
+    pick(Abs, X),                    % Partially ground the abstract state
     msw(X, abs(Y)),
     functor(Y, _, N),
     print('rewriting mu... '), print(Y), nl,
     rewrite(Y, Abs, N, Next),
     select(Next, Ground).            % Recurse on the partially ground state
+
+rewrite(S, _, 0, abs(S)) :- !.
+
+rewrite(String, abs(M), N, Next) :-
+    (  arg(N, String, arg(X))
+    -> arg(X, M, Y), 
+       setarg(N, String, Y), 
+       A is N - 1
+    ;  A is N - 1
+    ), 
+    rewrite(String, abs(M), A, Next).
 
 %%
 % [trans/3] trans(Ground, Observations, States)
@@ -168,24 +177,27 @@ trans(stop, [], []) :- !.
 trans(Ground, [Obs | R1], [Next | R2]) :-
     print('======='), nl, print('ground is: '), print(Ground), nl,
     
-    msw(Ground, X),                  % Select the abstract transition
+    pick(Ground, X),                 % Select the abstract transition
     
-    msw(X, [Ob, Abs]),
+    msw(X, [Obs_1, abs(Abs)]),
 
-    functor(Abs, _, N),
-    functor(Ob, _, M),
-    
-    print('rewriting trans... '), print(Abs), nl,
-    
-    rewrite_trans(Abs, Ground, N, Abss),
-    
-    print('rewriting obs... '), print(Ob), nl,
-    
-    rewrite_obs(Ob, Ground, M, Obs),
+    (  Obs_1 =.. L,
+       length(L, 1)
+    -> Obs = Obs_1, print('Obs has no vars...'), nl
+    ;  functor(Obs_1, _, M),
+       print('rewriting obs... '), print(Obs_1), nl,
+       rewrite_obs(Obs_1, Ground, M, Obs)
+    ),
 
-    print('Grounding from TRANS... '), print(Abss), nl,
+    (  Abs = stop
+    -> Abs1 = Abs
+    ;  functor(Abs, _, N),
+       print('rewriting trans... '), print(Abs), nl,
+       rewrite_obs(Abs, Ground, N, Abs1),  
+       print('    Grounding from TRANS... '), print(Abs1), nl
+    ),
 
-    select(Abss, Next),               % Ground the abstract transition
+    select(abs(Abs1), Next),               % Ground the abstract transition
 
     print('Next is: '), print(Next), nl,
     
@@ -194,46 +206,14 @@ trans(Ground, [Obs | R1], [Next | R2]) :-
 %
 %
 %
-rewrite(S, _, 0, abs(S)) :- !.
-
-rewrite(String, abs(M), N, Next) :-
-    (  arg(N, String, arg(X))
-    -> arg(X, M, Y), 
-       setarg(N, String, Y), 
-       A is N - 1
-    ;  A is N - 1
-    ), 
-    rewrite(String, abs(M), A, Next).
-
-%
-%
-%
-rewrite_trans(abs('stop'), _, _, abs('stop')) :- !.
-
-rewrite_trans(S, _, 0, S) :- !.
-
-rewrite_trans(abs(String), M, N, Next) :-
-    (  arg(N, String, arg(X))
-    -> arg(X, M, Y), 
-       setarg(N, String, Y), 
-       A is N - 1
-    ;  A is N - 1
-    ), 
-    rewrite_trans(abs(String), M, A, Next).
-
-%
-%
-%
-rewrite_obs(S, _, _, S) :- 
-    S =.. L,
-    length(L, 1), !.
-
 rewrite_obs(S, _, 0, S) :- !.
 
 rewrite_obs(String, M, N, Next) :-
-    String =.. L,
-    \+ length(L, 1),
     N > 0,
+
+    print('Original String is: '), print(String), nl,
+    print('Target String is: '), print(M), nl,
+    
     (  arg(N, String, arg(X))
     -> arg(X, M, Y), 
        setarg(N, String, Y), 
@@ -242,6 +222,18 @@ rewrite_obs(String, M, N, Next) :-
     ),
     rewrite_obs(String, M, A, Next).
 
+%
+%
+%
+%pick(abs(emacs('F', U)), mu_emacs_0) :- !.
+%pick(abs(emacs(F, 'U')), mu_emacs_1) :- !.
+%pick(abs(ls('U')), mu_ls_0) :- !.
+%pick(abs(latex('F', U)), mu_latex_0) :- !.
+%pick(abs(latex(F, 'U')), mu_latex_1) :- !.
+%pick(emacs(F, 'tex'), delta_emacs_0) :- !.
+%pick(emacs(F, U), delta_emacs_1) :- !.
+%pick(ls(U), delta_ls_0) :- !.
+%pick(latex(F, 'tex'), delta_latex_0) :- !.
 %%------------------------------------
 %% Utility section
 %%------------------------------------
