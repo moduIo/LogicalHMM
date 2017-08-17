@@ -47,11 +47,23 @@ values(init, [abs(ls('U')), abs(emacs('F', 'U'))]).
 %%
 
 % emacs/2
-values(abs(emacs('F', U)), [abs(emacs('f1', U)), abs(emacs('f2', U))]).
-values(abs(emacs(F, 'U')), [abs(emacs(F, 'tex')), abs(emacs(F, 'other'))]).
+values(abs(emacs('F', U)), [mu_emacs_0]).
+values(abs(emacs(F, 'U')), [mu_emacs_1]).
+
+values(mu_emacs_0, [abs(emacs('f1', arg(2))), abs(emacs('f2', arg(2)))]).
+values(mu_emacs_1, [abs(emacs(arg(1), 'tex')), abs(emacs(arg(1), 'other'))]).
 
 % ls/1
-values(abs(ls('U')), [abs(ls('tex')), abs(ls('other'))]).
+values(abs(ls('U')), [mu_ls_0]).
+
+values(mu_ls_0, [abs(ls('tex')), abs(ls('other'))]).
+
+% latex/2
+values(abs(latex('F', U)), [mu_latex_0]).
+values(abs(latex(F, 'U')), [mu_latex_1]).
+
+values(mu_latex_0, [abs(latex('f1', arg(2))), abs(latex('f2', arg(2)))]).
+values(mu_latex_1, [abs(latex(arg(1), 'tex')), abs(latex(arg(1), 'other'))]).
 
 %%
 % [DELTA] Abstract transitions
@@ -60,14 +72,22 @@ values(abs(ls('U')), [abs(ls('tex')), abs(ls('other'))]).
 %%
 
 % emacs/2
-values(emacs(F, 'tex'), [[emacs(F), abs(ls('U'))], [emacs(F), abs(emacs('F', 'U'))], [emacs(F), abs(latex(F, 'tex'))], ['STOP', abs(stop)]]).
-values(emacs(F, U), [[emacs(F), abs(ls('U'))], [emacs(F), abs(emacs('F', U))], ['STOP', abs(stop)]]).
+values(emacs(F, 'tex'), [delta_emacs_0]).
+values(emacs(F, U), [delta_emacs_1]).
+
+values(delta_emacs_0, [[emacs(arg(1)), abs(ls('U'))], [emacs(arg(1)), abs(emacs('F', 'U'))], [emacs(arg(1)), abs(latex(arg(1), 'tex'))], ['STOP', abs(stop)]]).
+
+values(delta_emacs_1, [[emacs(arg(1)), abs(ls('U'))], [emacs(arg(1)), abs(emacs('F', arg(2)))], ['STOP', abs(stop)]]).
 
 % ls/1
-values(ls(U), [[ls, abs(ls(U))], [ls, abs(emacs('F', 'U'))], ['STOP', abs(stop)]]).
+values(ls(U), [delta_ls_0]).
+
+values(delta_ls_0, [[ls, abs(ls(arg(1)))], [ls, abs(emacs('F', 'U'))], ['STOP', abs(stop)]]).
 
 % latex/2
-values(latex(F, 'tex'), [[latex(F), abs(ls('U'))], [latex(F), abs(emacs('F', 'U'))], [latex(F), abs(emacs(F, 'tex'))], ['STOP', abs(stop)]]).
+values(latex(F, 'tex'), [delta_latex_0]).
+
+values(delta_latex_0, [[latex(arg(1)), abs(ls('U'))], [latex(arg(1)), abs(emacs('F', 'U'))], [latex(arg(1)), abs(emacs(arg(1), 'tex'))], ['STOP', abs(stop)]]).
 
 %%------------------------------------
 %% Modeling section
@@ -115,7 +135,10 @@ select(abs(Ground), Ground) :-
     intersection(Args, V, []), !.    % End recursion if all logical variables are ground
 
 select(Abs, Ground) :-
-    msw(Abs, Next),                  % Partially ground the abstract state
+    msw(Abs, X),                     % Partially ground the abstract state
+    msw(X, abs(Y)),
+    functor(Y, _, N),
+    rewrite(Y, Abs, N, Next),
     select(Next, Ground).            % Recurse on the partially ground state
 
 %%
@@ -135,9 +158,47 @@ select(Abs, Ground) :-
 trans(stop, [], []) :- !.
 
 trans(Ground, [Obs | R1], [Next | R2]) :-
-    msw(Ground, [Obs, Abs]),         % Select the abstract transition
+    msw(Ground, X),                  % Select the abstract transition
+    msw(X, [Ob, Abs]),
+    functor(Ground, _, N),
+    rewrite_obs(Ob, Ground, N, Obs),
+    print('---THIS IS WHAT WAS PROPOSED: '), print(Abs), print('----'), nl,
     select(Abs, Next),               % Ground the abstract transition
+    print('---THIS IS WHAT WAS SELECTED: '), print(Next), print('-----'), nl,
     trans(Next, R1, R2).             % Recurse on the next state while recording sequences
+
+%
+%
+%
+rewrite(S, _, 0, abs(S)) :- print('----DONE ARG REWRITE ----'), print(S), nl, nl, !.
+
+rewrite(String, abs(M), N, Next) :-
+    print('STRING = '), print(String), nl, 
+    print('ITERATION = '), print(N), nl, 
+    print('ORIGINAL BODY = '), print(M), nl,
+    (  arg(N, String, arg(X))
+    -> arg(X, M, Y), setarg(N, String, Y), A is N - 1
+    ;  A is N - 1
+    ), print('NEXT-----'), nl, rewrite(String, abs(M), A, Next).
+
+%
+%
+%
+rewrite_obs(S, _, _, S) :- 
+    print(S),
+    S =.. L,
+    length(L, 1), nl, print('----DONE OBS REWRITE----'), nl, nl, !.
+
+rewrite_obs(S, _, 0, S) :- print('----DONE OBS REWRITE----'), print(S), nl, nl, !.
+
+rewrite_obs(String, M, N, Next) :-
+    print('STRING = '), print(String), nl, 
+    print('ITERATION = '), print(N), nl, 
+    print('ORIGINAL BODY = '), print(M), nl,
+    (  arg(N, String, arg(X))
+    -> arg(X, M, Y), setarg(N, String, Y), A is N - 1
+    ;  A is N - 1
+    ), print('NEXT-----'), nl, rewrite_obs(String, M, A, Next).
 
 %%------------------------------------
 %% Utility section
@@ -145,11 +206,7 @@ trans(Ground, [Obs | R1], [Next | R2]) :-
 
 set_params :-
     set_sw(init, [0.55, 0.45]),
-    set_sw(emacs('f1', 'tex'), [0.2666, 0.0666, 0.5666, 0.1]),
-    set_sw(emacs('f2', 'tex'), [0.2666, 0.0666, 0.5666, 0.1]),
-    set_sw(emacs('f1', 'other'), [0.65, 0.25, 0.1]),
-    set_sw(emacs('f2', 'other'), [0.65, 0.25, 0.1]),
-    set_sw(latex('f1', 'tex'), [0.1666, 0.5666, 0.1666, 0.1]),
-    set_sw(latex('f2', 'tex'), [0.1666, 0.5666, 0.1666, 0.1]),
-    set_sw(ls('tex'), [0.35, 0.55, 0.1]),
-    set_sw(ls('other'), [0.35, 0.55, 0.1]).
+    set_sw(delta_emacs_0, [0.2666, 0.0666, 0.5666, 0.1]),
+    set_sw(delta_emacs_1, [0.65, 0.25, 0.1]),
+    set_sw(delta_latex_0, [0.1666, 0.5666, 0.1666, 0.1]),
+    set_sw(delta_ls_0, [0.35, 0.55, 0.1]).
