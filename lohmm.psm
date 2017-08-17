@@ -116,7 +116,9 @@ lohmm(Obs, [Ground | States]) :-
     set_params,
     msw(init, Abs),                  % Pick initial abstract state
     select(Abs, Ground),             % Ground the initial state
-    trans(Ground, Obs, States),      % Transition via ground state while recording observation and state sequence
+    print(Ground),
+    print('ENTERING TRANS'), nl, nl,
+    trans(Ground, Obs, States), !,     % Transition via ground state while recording observation and state sequence
     Obs \= ['STOP'].                 % Disallow sequences to terminate without emiting some output
 
 %%
@@ -139,6 +141,7 @@ select(Abs, Ground) :-
     msw(X, abs(Y)),
     functor(Y, _, N),
     rewrite(Y, Abs, N, Next),
+    print('POST GROUNDING.....'), print(Next), nl, nl,
     select(Next, Ground).            % Recurse on the partially ground state
 
 %%
@@ -161,9 +164,12 @@ trans(Ground, [Obs | R1], [Next | R2]) :-
     msw(Ground, X),                  % Select the abstract transition
     msw(X, [Ob, Abs]),
     functor(Ground, _, N),
+    nl, nl, print('===REWRITING TRANS==='), nl,
+    rewrite_trans(Abs, Ground, N, Abss),
+    print('===DONE REWRITING TRANS==='), nl, nl,
     rewrite_obs(Ob, Ground, N, Obs),
-    print('---THIS IS WHAT WAS PROPOSED: '), print(Abs), print('----'), nl,
-    select(Abs, Next),               % Ground the abstract transition
+    print('---THIS IS WHAT WAS PROPOSED: '), print(Abss), print('----'), nl,
+    select(Abss, Next),               % Ground the abstract transition
     print('---THIS IS WHAT WAS SELECTED: '), print(Next), print('-----'), nl,
     trans(Next, R1, R2).             % Recurse on the next state while recording sequences
 
@@ -180,6 +186,22 @@ rewrite(String, abs(M), N, Next) :-
     -> arg(X, M, Y), setarg(N, String, Y), A is N - 1
     ;  A is N - 1
     ), print('NEXT-----'), nl, rewrite(String, abs(M), A, Next).
+
+%
+%
+%
+rewrite_trans(abs('stop'), _, _, abs('stop')).
+
+rewrite_trans(S, _, 0, S) :- print('----DONE ARG REWRITE ----'), print(S), nl, nl, !.
+
+rewrite_trans(abs(String), M, N, Next) :-
+    print('STRING = '), print(String), nl, 
+    print('ITERATION = '), print(N), nl, 
+    print('ORIGINAL BODY = '), print(M), nl,
+    (  arg(N, String, arg(X))
+    -> arg(X, M, Y), setarg(N, String, Y), A is N - 1
+    ;  A is N - 1
+    ), print('NEXT-----'), nl, rewrite_trans(abs(String), M, A, Next).
 
 %
 %
