@@ -170,20 +170,28 @@ trans(Ground, [Obs | R1], [Next | R2]) :-
     
     msw(X, [Obs_1, abs(Abs)]),
 
-    (  Obs_1 =.. L,
-       length(L, 1)
-    -> Obs = Obs_1, print('Obs has no vars...'), nl
+    (  Obs_1 =.. L, length(L, 1)
+    -> Obs = Obs_1, 
+
+    print('Obs has no vars...'), nl
+    
     ;  functor(Obs_1, _, M),
-       print('rewriting obs... '), print(Obs_1), nl,
+       
+    print('rewriting obs... '), print(Obs_1), nl,
+    
        rewrite(Obs_1, Ground, M, Obs)
     ),
 
     (  Abs = stop
     -> Abs1 = Abs
     ;  functor(Abs, _, N),
-       print('rewriting trans... '), print(Abs), nl,
+       
+    print('rewriting trans... '), print(Abs), nl,
+    
        rewrite(Abs, Ground, N, Abs1),  
-       print('    Grounding from TRANS... '), print(Abs1), nl
+       
+    print('    Grounding from TRANS... '), print(Abs1), nl
+    
     ),
 
     select(abs(Abs1), Next),               % Ground the abstract transition
@@ -192,37 +200,35 @@ trans(Ground, [Obs | R1], [Next | R2]) :-
     
     trans(Next, R1, R2).             % Recurse on the next state while recording sequences
 
-%
-%
-%
-rewrite(S, _, 0, S) :- !.
+%%
+% [rewrite/4] rewrite(String, Ground, N, Next)
+% ---
+% String := partially ground string which may contain arg(Pos) placeholders
+% Ground := the current ground state which provides the arguments to rewrite with
+% N := the number of arguments in String
+% Next := partially ground string after the current iteration
+% ---
+% Rewrites String to Next by replacing arg(Pos) placeholders by the value Ground
+% holds in position Pos.
+%%
+rewrite(S, _, 0, S) :- !.              % End recursion when N = 0
 
-rewrite(String, M, N, Next) :-
-    N > 0,
+rewrite(String, Ground, N, Next) :-
+    N > 0,                             % Enforce N > 0 constraint for explanation search
 
     print('Original String is: '), print(String), nl,
-    print('Target String is: '), print(M), nl,
+    print('Target String is: '), print(Ground), nl,
 
-    (  arg(N, String, arg(X))
-    -> arg(X, M, Y), 
-       setarg(N, String, Y), 
-       A is N - 1
-    ;  A is N - 1
+    (  arg(N, String, arg(Pos))        % If the nth position of String is the placeholder arg(Pos)
+    -> arg(Pos, Ground, Arg),          %     Get the argument of Ground at position Pos
+       setarg(N, String, Arg),         %     Replace arg(Pos) in String with the argument of Ground
+       M is N - 1                      %     Decrement N
+    ;  M is N - 1                      % Else decrement N
     ), 
-    rewrite(String, M, A, Next).
+    rewrite(String, Ground, M, Next),  % Recurse on the next position of String
 
-%
-%
-%
-%pick(abs(emacs('F', U)), mu_emacs_0) :- !.
-%pick(abs(emacs(F, 'U')), mu_emacs_1) :- !.
-%pick(abs(ls('U')), mu_ls_0) :- !.
-%pick(abs(latex('F', U)), mu_latex_0) :- !.
-%pick(abs(latex(F, 'U')), mu_latex_1) :- !.
-%pick(emacs(F, 'tex'), delta_emacs_0) :- !.
-%pick(emacs(F, U), delta_emacs_1) :- !.
-%pick(ls(U), delta_ls_0) :- !.
-%pick(latex(F, 'tex'), delta_latex_0) :- !.
+    print('Rewritten String is: '), print(Next), nl.
+
 %%------------------------------------
 %% Utility section
 %%------------------------------------
