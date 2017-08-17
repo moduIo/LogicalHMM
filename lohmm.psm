@@ -139,24 +139,13 @@ select(abs(Ground), Ground) :-
     l_vars(V),                       % V = {logical variables}
     intersection(Args, V, []), !.    % End recursion if all logical variables are ground
 
-select(Abs, Ground) :-
-    pick(Abs, X),                    % Partially ground the abstract state
+select(abs(Abs), Ground) :-
+    msw(abs(Abs), X),                    % Partially ground the abstract state
     msw(X, abs(Y)),
     functor(Y, _, N),
     print('rewriting mu... '), print(Y), nl,
     rewrite(Y, Abs, N, Next),
-    select(Next, Ground).            % Recurse on the partially ground state
-
-rewrite(S, _, 0, abs(S)) :- !.
-
-rewrite(String, abs(M), N, Next) :-
-    (  arg(N, String, arg(X))
-    -> arg(X, M, Y), 
-       setarg(N, String, Y), 
-       A is N - 1
-    ;  A is N - 1
-    ), 
-    rewrite(String, abs(M), A, Next).
+    select(abs(Next), Ground).            % Recurse on the partially ground state
 
 %%
 % [trans/3] trans(Ground, Observations, States)
@@ -177,7 +166,7 @@ trans(stop, [], []) :- !.
 trans(Ground, [Obs | R1], [Next | R2]) :-
     print('======='), nl, print('ground is: '), print(Ground), nl,
     
-    pick(Ground, X),                 % Select the abstract transition
+    msw(Ground, X),                 % Select the abstract transition
     
     msw(X, [Obs_1, abs(Abs)]),
 
@@ -186,14 +175,14 @@ trans(Ground, [Obs | R1], [Next | R2]) :-
     -> Obs = Obs_1, print('Obs has no vars...'), nl
     ;  functor(Obs_1, _, M),
        print('rewriting obs... '), print(Obs_1), nl,
-       rewrite_obs(Obs_1, Ground, M, Obs)
+       rewrite(Obs_1, Ground, M, Obs)
     ),
 
     (  Abs = stop
     -> Abs1 = Abs
     ;  functor(Abs, _, N),
        print('rewriting trans... '), print(Abs), nl,
-       rewrite_obs(Abs, Ground, N, Abs1),  
+       rewrite(Abs, Ground, N, Abs1),  
        print('    Grounding from TRANS... '), print(Abs1), nl
     ),
 
@@ -206,21 +195,21 @@ trans(Ground, [Obs | R1], [Next | R2]) :-
 %
 %
 %
-rewrite_obs(S, _, 0, S) :- !.
+rewrite(S, _, 0, S) :- !.
 
-rewrite_obs(String, M, N, Next) :-
+rewrite(String, M, N, Next) :-
     N > 0,
 
     print('Original String is: '), print(String), nl,
     print('Target String is: '), print(M), nl,
-    
+
     (  arg(N, String, arg(X))
     -> arg(X, M, Y), 
        setarg(N, String, Y), 
        A is N - 1
     ;  A is N - 1
-    ),
-    rewrite_obs(String, M, A, Next).
+    ), 
+    rewrite(String, M, A, Next).
 
 %
 %
