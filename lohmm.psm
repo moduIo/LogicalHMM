@@ -113,12 +113,17 @@ lohmm(Obs) :- lohmm(Obs, _).
 % Returns the list of observations and state sequence.
 %%
 lohmm(Obs, [Ground | States]) :-
+    print('At the start...'), nl,
     set_params,
     msw(init, Abs),                  % Pick initial abstract state
+
+    print('init = '), print(Abs), nl,
+    
     select(Abs, Ground),             % Ground the initial state
-    print(Ground),
-    print('ENTERING TRANS'), nl, nl,
-    trans(Ground, Obs, States), !,     % Transition via ground state while recording observation and state sequence
+
+    nl, nl, nl, print('init = '), print(Abs), nl, print('ground = '), print(Ground), nl, print('ABS = '), print(Abs), nl,
+    
+    trans(Ground, Obs, States),      % Transition via ground state while recording observation and state sequence
     Obs \= ['STOP'].                 % Disallow sequences to terminate without emiting some output
 
 %%
@@ -140,8 +145,8 @@ select(Abs, Ground) :-
     msw(Abs, X),                     % Partially ground the abstract state
     msw(X, abs(Y)),
     functor(Y, _, N),
+    print('rewriting mu... '), print(Y), nl,
     rewrite(Y, Abs, N, Next),
-    print('POST GROUNDING.....'), print(Next), nl, nl,
     select(Next, Ground).            % Recurse on the partially ground state
 
 %%
@@ -161,66 +166,81 @@ select(Abs, Ground) :-
 trans(stop, [], []) :- !.
 
 trans(Ground, [Obs | R1], [Next | R2]) :-
+    print('======='), nl, print('ground is: '), print(Ground), nl,
+    
     msw(Ground, X),                  % Select the abstract transition
+    
     msw(X, [Ob, Abs]),
-    functor(Ground, _, N),
-    nl, nl, print('===REWRITING TRANS==='), nl,
+
+    functor(Abs, _, N),
+    functor(Ob, _, M),
+    
+    print('rewriting trans... '), print(Abs), nl,
+    
     rewrite_trans(Abs, Ground, N, Abss),
-    print('===DONE REWRITING TRANS==='), nl, nl,
-    rewrite_obs(Ob, Ground, N, Obs),
-    print('---THIS IS WHAT WAS PROPOSED: '), print(Abss), print('----'), nl,
+    
+    print('rewriting obs... '), print(Ob), nl,
+    
+    rewrite_obs(Ob, Ground, M, Obs),
+
+    print('Grounding from TRANS... '), print(Abss), nl,
+
     select(Abss, Next),               % Ground the abstract transition
-    print('---THIS IS WHAT WAS SELECTED: '), print(Next), print('-----'), nl,
+
+    print('Next is: '), print(Next), nl,
+    
     trans(Next, R1, R2).             % Recurse on the next state while recording sequences
 
 %
 %
 %
-rewrite(S, _, 0, abs(S)) :- print('----DONE ARG REWRITE ----'), print(S), nl, nl, !.
+rewrite(S, _, 0, abs(S)) :- !.
 
 rewrite(String, abs(M), N, Next) :-
-    print('STRING = '), print(String), nl, 
-    print('ITERATION = '), print(N), nl, 
-    print('ORIGINAL BODY = '), print(M), nl,
     (  arg(N, String, arg(X))
-    -> arg(X, M, Y), setarg(N, String, Y), A is N - 1
+    -> arg(X, M, Y), 
+       setarg(N, String, Y), 
+       A is N - 1
     ;  A is N - 1
-    ), print('NEXT-----'), nl, rewrite(String, abs(M), A, Next).
+    ), 
+    rewrite(String, abs(M), A, Next).
 
 %
 %
 %
-rewrite_trans(abs('stop'), _, _, abs('stop')).
+rewrite_trans(abs('stop'), _, _, abs('stop')) :- !.
 
-rewrite_trans(S, _, 0, S) :- print('----DONE ARG REWRITE ----'), print(S), nl, nl, !.
+rewrite_trans(S, _, 0, S) :- !.
 
 rewrite_trans(abs(String), M, N, Next) :-
-    print('STRING = '), print(String), nl, 
-    print('ITERATION = '), print(N), nl, 
-    print('ORIGINAL BODY = '), print(M), nl,
     (  arg(N, String, arg(X))
-    -> arg(X, M, Y), setarg(N, String, Y), A is N - 1
+    -> arg(X, M, Y), 
+       setarg(N, String, Y), 
+       A is N - 1
     ;  A is N - 1
-    ), print('NEXT-----'), nl, rewrite_trans(abs(String), M, A, Next).
+    ), 
+    rewrite_trans(abs(String), M, A, Next).
 
 %
 %
 %
 rewrite_obs(S, _, _, S) :- 
-    print(S),
     S =.. L,
-    length(L, 1), nl, print('----DONE OBS REWRITE----'), nl, nl, !.
+    length(L, 1), !.
 
-rewrite_obs(S, _, 0, S) :- print('----DONE OBS REWRITE----'), print(S), nl, nl, !.
+rewrite_obs(S, _, 0, S) :- !.
 
 rewrite_obs(String, M, N, Next) :-
-    print('STRING = '), print(String), nl, 
-    print('ITERATION = '), print(N), nl, 
-    print('ORIGINAL BODY = '), print(M), nl,
+    String =.. L,
+    \+ length(L, 1),
+    N > 0,
     (  arg(N, String, arg(X))
-    -> arg(X, M, Y), setarg(N, String, Y), A is N - 1
+    -> arg(X, M, Y), 
+       setarg(N, String, Y), 
+       A is N - 1
     ;  A is N - 1
-    ), print('NEXT-----'), nl, rewrite_obs(String, M, A, Next).
+    ),
+    rewrite_obs(String, M, A, Next).
 
 %%------------------------------------
 %% Utility section
