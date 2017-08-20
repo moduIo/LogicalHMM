@@ -17,7 +17,7 @@ lohmm(T, [T|Ts], [A|As]) :-
     vars_set(S, V),
     
     length(V, Len2),
-
+/*
     (  ground(A)
     -> true
     ;  bind(A, Len1)
@@ -26,7 +26,10 @@ lohmm(T, [T|Ts], [A|As]) :-
     (  ground(S)
     -> true
     ;  bind(S, Len2)
-    ),
+    ),*/
+
+    bind(A, Len1),
+    bind(S, Len2),
 
 	lohmm(S, Ts, As).
 
