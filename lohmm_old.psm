@@ -1,0 +1,242 @@
+%%%%%%
+% Model of a Logical Hidden Markov Model (LOHMM)
+% LM = (SIGMA, MU, DELTA, UPSILON)
+% Where
+%    SIGMA := logical alphabet
+%    MU := selection (grounding) probability over SIGMA
+%    DELTA := set of abstract transitions T = (p : H <- B emitting O)
+%    UPSILON := set of abstract transitions encoding a prior distribution of states
+% ---
+% Example taken from "Logical Hidden Markov Models" - Kersting, De Raedt, Raiko; Figure 1.
+%
+% Each of the LOHMM parameters are encoded via a different set of PRISM switches.
+%
+% [UPSILON]
+%     * The prior distribution simply makes a choice from a set of abstract states. 
+%
+% [MU]
+%     * Logical variables are encoded via uppercase string constants such as 'U' and 'F'.
+%     This is due to PRISM needing a ground instance of msw().
+%     * Non-ground predicates are represented by abs(Predicate) terms and each non-ground
+%     logical variable is ground one by one until the term is fully ground.
+%
+% [DELTA]
+%     * Ground predicates are represented as Predicate and can transition to other ground
+%     predicates or back to abstract predicates.
+% ---
+% USAGE:
+%     * ?- sample(lohmm(Observations)).
+%     Returns a list of observations emitted from the LOHMM (or 'no' if Observations = ['STOP'])
+%
+%     * ?- sample(lohmm(Observations, States)).
+%     Returns a list of observations emitted and states traversed via the LOHMM (or 'no' if Observations = ['STOP'])
+%%%%%%
+
+%%------------------------------------
+%% Declarations section
+%%------------------------------------
+
+%%
+% [UPSILON] Prior distribution on starting states
+%%
+values(init, [abs(ls('U')), abs(emacs('F', 'U'))]).
+
+%%
+% [MU] Grounding rules
+% Result of selection probability.
+%%
+
+% emacs/2
+values(abs(emacs('F', _)), [mu_emacs_0]).
+values(abs(emacs(_, 'U')), [mu_emacs_1]).
+
+values(mu_emacs_0, [abs(emacs('f1', arg(2))), abs(emacs('f2', arg(2)))]).
+values(mu_emacs_1, [abs(emacs(arg(1), 'tex')), abs(emacs(arg(1), 'other'))]).
+
+% ls/1
+values(abs(ls('U')), [mu_ls_0]).
+
+values(mu_ls_0, [abs(ls('tex')), abs(ls('other'))]).
+
+% latex/2
+values(abs(latex('F', _)), [mu_latex_0]).
+values(abs(latex(_, 'U')), [mu_latex_1]).
+
+values(mu_latex_0, [abs(latex('f1', arg(2))), abs(latex('f2', arg(2)))]).
+values(mu_latex_1, [abs(latex(arg(1), 'tex')), abs(latex(arg(1), 'other'))]).
+
+%%
+% [DELTA] Abstract transitions
+% Result of msw(B, [O, H]) represents T = (p : H <- B emitting O).
+% values/2 for more general B should be placed below values/2 for more specific B, implementing the subsumption constraint.
+%%
+
+% emacs/2
+values(emacs(_, 'tex'), [delta_emacs_0]).
+values(emacs(_, _), [delta_emacs_1]).
+
+values(delta_emacs_0, [[emacs(arg(1)), abs(ls('U'))], [emacs(arg(1)), abs(emacs('F', 'U'))], [emacs(arg(1)), abs(latex(arg(1), 'tex'))], ['STOP', abs(stop)]]).
+
+values(delta_emacs_1, [[emacs(arg(1)), abs(ls('U'))], [emacs(arg(1)), abs(emacs('F', arg(2)))], ['STOP', abs(stop)]]).
+
+% ls/1
+values(ls(_), [delta_ls_0]).
+
+values(delta_ls_0, [[ls, abs(ls(arg(1)))], [ls, abs(emacs('F', 'U'))], ['STOP', abs(stop)]]).
+
+% latex/2
+values(latex(_, 'tex'), [delta_latex_0]).
+
+values(delta_latex_0, [[latex(arg(1)), abs(ls('U'))], [latex(arg(1)), abs(emacs('F', 'U'))], [latex(arg(1)), abs(emacs(arg(1), 'tex'))], ['STOP', abs(stop)]]).
+
+%%------------------------------------
+%% Modeling section
+%%------------------------------------
+
+l_vars(['F', 'U']).  % List of logical variables used in LOHMM
+
+%%
+% [lohmm/1] lohmm(Observations)
+% ---
+% Observations := a list of observations emitted from the LOHMM
+% ---
+% Returns the list of observations.
+%%
+lohmm(Obs) :- lohmm(Obs, _).
+
+%%
+% [lohmm/2] lohmm(Observations, States)
+% ---
+% Observations := a list of observations emitted from the LOHMM
+% States := a list recording the state sequence of the LOHMM
+% ---
+% Returns the list of observations and state sequence.
+%%
+lohmm(Obs, [Ground | States]) :-
+    
+    print('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'), nl,
+
+    set_params,
+    msw(init, Abs),                  % Pick initial abstract state
+    select(Abs, Ground),             % Ground the initial state
+
+    nl, print('init = '), print(Abs), nl, print('ground = '), print(Ground), nl,
+    
+    trans(Ground, Obs, States),      % Transition via ground state while recording observation and state sequence
+    Obs \= ['STOP'].                 % Disallow sequences to terminate without emiting some output
+
+%%
+% [select/2] select(Abs, Next)
+% ---
+% Abs := partially ground abstract state
+% Next := the result of grounding a single variable in Abs
+% ---
+% Implements the selection function MU.
+% Each logical variable is ground one at a time and the recursion terminates
+% when none of the arguments to the predicate are in the set l_vars.
+%%
+select(abs(Ground), Ground) :-
+    Ground =.. [_ | Args],           % Split the predicate into [Name | Args] to check arguments
+    l_vars(V),                       % V = {logical variables}
+    intersection(Args, V, []), !.    % End recursion if all logical variables are ground
+
+select(abs(Abs), Ground) :-
+    msw(abs(Abs), X),                    % Partially ground the abstract state
+    msw(X, abs(Y)),
+    functor(Y, _, N),
+
+    print('rewriting mu... '), print(Y), nl,
+    
+    rewrite(Y, Abs, N, Next),
+    select(abs(Next), Ground).            % Recurse on the partially ground state
+
+%%
+% [trans/3] trans(Ground, Observations, States)
+% ---
+% Ground := the current ground state
+% Observations := a list of observations which has the current state emission as the head
+% States := a list of states which has the next state as the head
+% ---
+% Transitions via the LOHMM rules where 
+%     first we select an abstract transition,
+%     next we ground the states (if necessary),
+%     then we recurse on the next state.
+%
+% Recursion completes when the LOHMM reaches the 'stop' state.
+%%
+trans(stop, [], []) :- !.
+
+trans(Ground, [Obs | R1], [Next | R2]) :-
+    print('======='), nl, print('ground is: '), print(Ground), nl,
+    
+    msw(Ground, X),                 % Select the abstract transition
+    
+    msw(X, [Obs_1, abs(Abs)]),
+
+    (  Obs_1 =.. L, length(L, 1)
+    -> Obs = Obs_1, 
+
+    print('Obs has no vars...'), nl
+    
+    ;  functor(Obs_1, _, M),
+       
+    print('rewriting obs... '), print(Obs_1), nl,
+    
+       rewrite(Obs_1, Ground, M, Obs)
+    ),
+
+    (  Abs = stop
+    -> Abs1 = Abs
+    ;  functor(Abs, _, N),
+       
+    print('rewriting trans... '), print(Abs), nl,
+    
+       rewrite(Abs, Ground, N, Abs1),  
+       
+    print('    Grounding from TRANS... '), print(Abs1), nl
+    
+    ),
+
+    select(abs(Abs1), Next),               % Ground the abstract transition
+
+    print('Next is: '), print(Next), nl,
+    
+    trans(Next, R1, R2).             % Recurse on the next state while recording sequences
+
+%%
+% [rewrite/4] rewrite(String, Ground, N, Next)
+% ---
+% String := partially ground string which may contain arg(Pos) placeholders
+% Ground := the current ground state which provides the arguments to rewrite with
+% N := the number of arguments in String
+% Next := partially ground string after the current iteration
+% ---
+% Rewrites String to Next by replacing arg(Pos) placeholders by the value Ground
+% holds in position Pos.
+%%
+rewrite(S, _, 0, S) :- print('Rewritten String is: '), print(S), nl, nl, !.              % End recursion when N = 0
+
+rewrite(String, Ground, N, Next) :-
+    N > 0,                             % Enforce N > 0 constraint for explanation search
+
+    print('Original String is: '), print(String), nl,
+    print('Target String is: '), print(Ground), nl,
+
+    (  arg(N, String, arg(Pos))        % If the nth position of String is the placeholder arg(Pos)
+    -> arg(Pos, Ground, Arg),          %     Get the argument of Ground at position Pos
+       setarg(N, String, Arg),         %     Replace arg(Pos) in String with the argument of Ground
+       M is N - 1                      %     Decrement N
+    ;  M is N - 1                      % Else decrement N
+    ), 
+    rewrite(String, Ground, M, Next).  % Recurse on the next position of String
+
+%%------------------------------------
+%% Utility section
+%%------------------------------------
+
+set_params :-
+    set_sw(init, [0.55, 0.45]),
+    set_sw(delta_emacs_0, [0.2666, 0.0666, 0.5666, 0.1]),
+    set_sw(delta_emacs_1, [0.65, 0.25, 0.1]),
+    set_sw(delta_latex_0, [0.1666, 0.5666, 0.1666, 0.1]),
+    set_sw(delta_ls_0, [0.35, 0.55, 0.1]).
