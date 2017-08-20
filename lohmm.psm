@@ -10,26 +10,12 @@ lohmm(stop, [], []) :- !.
 
 lohmm(T, [T|Ts], [A|As]) :- 
 	trans(T, A, S),
-    vars_set(A, V1),
     
-    length(V1, Len1),
-    
-    vars_set(S, V),
-    
-    length(V, Len2),
-/*
-    (  ground(A)
-    -> true
-    ;  bind(A, Len1)
-    ),
-    
-    (  ground(S)
-    -> true
-    ;  bind(S, Len2)
-    ),*/
+    generateID(A, ID1),
+    generateID(S, ID2),
 
-    bind(A, Len1),
-    bind(S, Len2),
+    bind(A, ID1),
+    bind(S, ID2),
 
 	lohmm(S, Ts, As).
 
@@ -53,56 +39,19 @@ bindall(F/N, Vs, I, L) :-
 
 bindall(F/N, Vs, I, L) :-
     nth(I, Vs, V),
-    var(V),
     msw(mu(F/N-I), V),
     I1 is I + 1,
     bindall(F/N, Vs, I1, L).
 
+generateID(Term, 0) :- ground(Term), !.
 
-/*
-bind(S) :- 
-    functor(S, F, N),
-    S =.. [F|Vs],
-    allbind(F/N, 1, Vs).
-
-allbind(F/N, _, L) :- ground(L), !.
-
-allbind(F/N, I, [V|Vs]) :-
-    (  var(V)
-    -> msw(mu(F/N-I), V) 
-    ;  true
-    ),
-    I1 is I + 1,
-    allbind(F/N, I1, Vs).
-*/
-
-/* ORIGINAL
-bind(S) :- 
-    functor(S, F, N),
-    S =.. [F|Vs],
-    allbind(F/N, 1, Vs).
-
-allbind(F/N, _, []) :- !.
-
-allbind(F/N, I, [V|Vs]) :-
-    (  var(V)
-    -> msw(mu(F/N-I), V) 
-    ;  true
-    ),
-    I1 is I + 1,
-    allbind(F/N, I1, Vs).
-*/
-
-
-/*bind(S) :-
-    functor(S, F, N),
-    S =.. [F | Vs],
-    foreach((V, I) in (Vs, 1..N), 
-        (  ground(V) 
-        -> true
-        ;  msw(mu(F/N-I), V))),
-    print('    Bound to...'), print(S), nl.*/
-
+generateID(Term, ID) :-
+    Term =.. [_ | Args],
+    length(Args, N),
+    foreach((Arg, I) in (Args, 1..N), ac(ID, 0),
+    (  var(Arg)
+    -> ID^1 is ID^0 + I
+    ;  ID^1 is ID^0)).
 
 %%%
 
