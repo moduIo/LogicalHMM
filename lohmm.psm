@@ -3,13 +3,13 @@ lohmm(Obs) :-
 
 lohmm(States, Obs) :-
     set_params,
-	lohmm(start, [start | States], [O | Obs]),
-	Obs \= [stop].
+    lohmm(start, [start | States], [O | Obs]),
+    Obs \= [stop].
 
 lohmm(stop, [], []) :- !.
 
 lohmm(T, [T|Ts], [A|As]) :- 
-	trans(T, A, S),
+    trans(T, A, S),
     
     generateID(A, ID1),
     generateID(S, ID2),
@@ -17,31 +17,27 @@ lohmm(T, [T|Ts], [A|As]) :-
     bind(A, ID1),
     bind(S, ID2),
 
-	lohmm(S, Ts, As).
+    lohmm(S, Ts, As).
 
 trans(T, A, S) :-
-     msw(T, RN),
-     msw(RN, R),
-     rule(R, T, (A,S)).
+    msw(T, RN),
+    msw(RN, R),
+    rule(R, T, (A,S)).
 
-bind(S, L) :- 
+bind(S, ID) :- 
     functor(S, F, N),
     S =.. [F|Vs],
-    bindall(F/N, Vs, 1, L).
+    allbind(F/N, 1, Vs, ID).
 
-bindall(F/N, L, _, _) :- ground(L), !.
+allbind(F/N, _, [], ID) :- !.
 
-bindall(F/N, Vs, I, L) :-
-    nth(I, Vs, V),
-    ground(V),
+allbind(F/N, I, [V|Vs], ID) :-
+    (  var(V)
+    -> msw(mu(F/N-I), V) 
+    ;  true
+    ),
     I1 is I + 1,
-    bindall(F/N, Vs, I1), !.
-
-bindall(F/N, Vs, I, L) :-
-    nth(I, Vs, V),
-    msw(mu(F/N-I), V),
-    I1 is I + 1,
-    bindall(F/N, Vs, I1, L).
+    allbind(F/N, I1, Vs, ID).
 
 generateID(Term, 0) :- ground(Term), !.
 
@@ -96,6 +92,8 @@ rule(latex_r_3, latex(F, tex), (latex(F), emacs(F,tex))).
 rule(stop, _, (stop, stop)).
 
 set_params :-
+    set_sw(mu(emacs/2-1), [0.3, 0.7]),
+    set_sw(mu(emacs/2-2), [0.55, 0.45]),
     set_sw(start_r, [0.55, 0.45]),
     set_sw(emacs_2_r, [0.2666, 0.0666, 0.5666, 0.1]),
     set_sw(emacs_1_r, [0.25, 0.65, 0.1]),
