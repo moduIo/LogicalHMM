@@ -2,42 +2,39 @@ lohmm(Obs) :-
     lohmm(_, Obs).
 
 lohmm(States, Obs) :-
-    set_params,
-    lohmm(start, [start | States], [O | Obs]),
-    Obs \= [stop].
+    set_params,                                 
+    lohmm(start, [start | States], [_ | Obs]),  
+    Obs \= [stop].                              
 
 lohmm(stop, [], []) :- !.
 
-lohmm(T, [T|Ts], [A|As]) :- 
-    trans(T, A, S),
-    
-    generateID(A, ID1),
-    generateID(S, ID2),
+lohmm(State, [State|States], [Obs|Obss]) :- 
+    trans(State, Obs, Next),      
+    generateID(Obs, ID1),  
+    generateID(Next, ID2),  
+    bind(Obs, ID1),        
+    bind(Next, ID2),        
+    lohmm(Next, States, Obss).    
 
-    bind(A, ID1),
-    bind(S, ID2),
+trans(State, Obs, Next) :-
+    msw(State, Rule_ID),         
+    msw(Rule_ID, Rule),         
+    rule(Rule, State, (Obs, Next)).  
 
-    lohmm(S, Ts, As).
+bind(State, ID) :- 
+    functor(State, F, N),         
+    State =.. [F|Args],             
+    allbind(F/N, 1, Args, ID). 
 
-trans(T, A, S) :-
-    msw(T, RN),
-    msw(RN, R),
-    rule(R, T, (A,S)).
+allbind(F/N, _, [], ID) :- !. 
 
-bind(S, ID) :- 
-    functor(S, F, N),
-    S =.. [F|Vs],
-    allbind(F/N, 1, Vs, ID).
-
-allbind(F/N, _, [], ID) :- !.
-
-allbind(F/N, I, [V|Vs], ID) :-
-    (  var(V)
-    -> msw(mu(F/N-I), V) 
+allbind(F/N, I, [Arg|Args], ID) :-
+    (  var(Arg)            
+    -> msw(mu(F/N-I), Arg) 
     ;  true
-    ),
+    ),                         
     I1 is I + 1,
-    allbind(F/N, I1, Vs, ID).
+    allbind(F/N, I1, Args, ID).
 
 generateID(Term, 0) :- ground(Term), !.
 
@@ -45,9 +42,11 @@ generateID(Term, ID) :-
     Term =.. [_ | Args],
     length(Args, N),
     foreach((Arg, I) in (Args, 1..N), ac(ID, 0),
-    (  var(Arg)
-    -> ID^1 is ID^0 + I
-    ;  ID^1 is ID^0)).
+        (  var(Arg)
+        -> ID^1 is ID^0 + I
+        ;  ID^1 is ID^0 
+        )
+    ).
 
 %%%
 
