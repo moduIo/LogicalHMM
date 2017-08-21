@@ -112,7 +112,7 @@ bind(Term, ID) :-
 %     if Arg is not ground:
 %         ground Arg via MU
 %
-% The msw for MU is indexed via <term_name>/<arity>-<arg_position>
+% The msw for MU is indexed via mu(<term_name>/<arity>-<arg_position>)
 %%
 allbind(F/N, _, [], ID) :- !. 
 
