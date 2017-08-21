@@ -10,40 +10,54 @@
 % Example taken from "Logical Hidden Markov Models" - Kersting, De Raedt, Raiko; Figure 1.
 %
 % Each of the LOHMM parameters are encoded via a different set of PRISM switches.
-%
-% [UPSILON]
-%     * The prior distribution simply makes a choice from a set of abstract states. 
-%
-% [MU]
-%     * Logical variables are encoded via uppercase string constants such as 'U' and 'F'.
-%     This is due to PRISM needing a ground instance of msw().
-%     * Non-ground predicates are represented by abs(Predicate) terms and each non-ground
-%     logical variable is ground one by one until the term is fully ground.
-%
-% [DELTA]
-%     * Ground predicates are represented as Predicate and can transition to other ground
-%     predicates or back to abstract predicates.
 % ---
 % USAGE:
-%     * ?- sample(lohmm(Observations)).
-%     Returns a list of observations emitted from the LOHMM (or 'no' if Observations = ['STOP'])
+%     ?- sample(lohmm(Observations)).
+%     Returns a list of observations emitted from the LOHMM (or 'no' if Observations = [stop])
 %
-%     * ?- sample(lohmm(Observations, States)).
-%     Returns a list of observations emitted and states traversed via the LOHMM (or 'no' if Observations = ['STOP'])
+%     ?- sample(lohmm(States, Observations)).
+%     Returns a list of observations emitted and states traversed via the LOHMM (or 'no' if Observations = [stop])
 %%%%%%
 
 %%------------------------------------
 %% Modeling section
 %%------------------------------------
 
+%%
+% [lohmm/1] lohmm(Observations)
+% ---
+% Observations := a list of observations emitted from the LOHMM
+% ---
+% Returns the list of observations.
+%%
 lohmm(Obs) :-
     lohmm(_, Obs).
 
+%%
+% [lohmm/2] lohmm(States, Observations)
+% ---
+% States := a list of states traversed
+% Observations := a list of observations emitted from the LOHMM
+% ---
+% Returns the list of states and observations.
+%%
 lohmm(States, Obs) :-
     set_params,                                 
     lohmm(start, [start | States], [_ | Obs]),  
     Obs \= [stop].                              
 
+%%
+% [lohmm/3] lohmm(Current, States, Observations)
+% ---
+% Current := the current ground state
+% States := a list of states traversed
+% Observations := a list of observations emitted from the LOHMM
+% ---
+% Selects trans/3 based on the current state,
+%     IDs are generated for the partially ground obs and next,
+%     using these IDs, obs and next are ground,
+%     loop until the current state is stop.
+%%
 lohmm(stop, [], []) :- !.
 
 lohmm(State, [State|States], [Obs|Obss]) :- 
@@ -54,16 +68,51 @@ lohmm(State, [State|States], [Obs|Obss]) :-
     bind(Next, ID2),        
     lohmm(Next, States, Obss).    
 
+%%
+% [trans/3] trans(Current, Obs, Next)
+% ---
+% Current := the current ground state
+% Obs := the partially ground observation
+% Next := the partially ground next state
+% ---
+% First selects a Rule_ID (to implement subsumption constraint),
+%     then uses the DELTA transitions of Rule_ID to select the next Rule,
+%     unifies rule/3 based on the current state and the selected Rule.
+%
+% NOTE: Rule itself is also an identifier used so that all instances which may
+% unify with some msw will share the same transition probability space for learning.
+%%
 trans(State, Obs, Next) :-
     msw(State, Rule_ID),         
     msw(Rule_ID, Rule),         
     rule(Rule, State, (Obs, Next)).  
 
-bind(State, ID) :- 
-    functor(State, F, N),         
-    State =.. [F|Args],             
+%%
+% [bind/2] bind(Term, ID)
+% ---
+% Term := patially ground term
+% ID := ID generated for the term
+% ---
+% Accesses Term arity and arguments and calls allbind/3 to ground the term.
+%%
+bind(Term, ID) :- 
+    functor(Term, F, N),         
+    Term =.. [F|Args],             
     allbind(F/N, 1, Args, ID). 
 
+%%
+% [allbind/4] allbind(Term, I, Args, ID)
+% ---
+% Term := term represented by <term_name>/<arity>, used to index msw
+% I := current iteration
+% Args := list of arguments in term
+% ID := generated ID of term
+% ---
+% Loop over Arg in Args:
+%     if Arg is not ground:
+%         ground Arg via MU
+%     
+%%
 allbind(F/N, _, [], ID) :- !. 
 
 allbind(F/N, I, [Arg|Args], ID) :-
@@ -74,12 +123,21 @@ allbind(F/N, I, [Arg|Args], ID) :-
     I1 is I + 1,
     allbind(F/N, I1, Args, ID).
 
+%%
+% [generateID/2] generateID(Term, ID)
+% ---
+% Term := partially ground term
+% ID := generated ID of term based on unground variable positions
+% ---
+% Generates an ID for a term by summation over the positions of the unground variables.
+% IDs are generated to avoid some unwanted instances of tabling during explaination generation in PRISM.
+%%
 generateID(Term, 0) :- ground(Term), !.
 
 generateID(Term, ID) :-
     Term =.. [_ | Args],
     length(Args, N),
-    foreach((Arg, I) in (Args, 1..N), ac(ID, 0),
+    foreach( (Arg, I) in (Args, 1..N), ac(ID, 0),
         (  var(Arg)
         -> ID^1 is ID^0 + I
         ;  ID^1 is ID^0 
@@ -123,7 +181,7 @@ values(mu(ls/1-1), [tex, other]).
 % ---
 % Each ground state is first matched to the most specific abstract state,
 %     then the transition is chosen based on transition probability,
-%     then the rule/2 which deterministically unifies is selected.
+%     returns the rule/3 which deterministically unifies with the selected transition (EX: ls_r_1).
 %
 % values/2 for more general B should be placed below values/2 for more specific B, implementing the subsumption constraint.
 %%
