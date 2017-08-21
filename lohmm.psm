@@ -1,3 +1,41 @@
+%%%%%%
+% Model of a Logical Hidden Markov Model (LOHMM)
+% LM = (SIGMA, MU, DELTA, UPSILON)
+% Where
+%    SIGMA := logical alphabet
+%    MU := selection (grounding) probability over SIGMA
+%    DELTA := set of abstract transitions T = (p : H <- B emitting O)
+%    UPSILON := set of abstract transitions encoding a prior distribution of states
+% ---
+% Example taken from "Logical Hidden Markov Models" - Kersting, De Raedt, Raiko; Figure 1.
+%
+% Each of the LOHMM parameters are encoded via a different set of PRISM switches.
+%
+% [UPSILON]
+%     * The prior distribution simply makes a choice from a set of abstract states. 
+%
+% [MU]
+%     * Logical variables are encoded via uppercase string constants such as 'U' and 'F'.
+%     This is due to PRISM needing a ground instance of msw().
+%     * Non-ground predicates are represented by abs(Predicate) terms and each non-ground
+%     logical variable is ground one by one until the term is fully ground.
+%
+% [DELTA]
+%     * Ground predicates are represented as Predicate and can transition to other ground
+%     predicates or back to abstract predicates.
+% ---
+% USAGE:
+%     * ?- sample(lohmm(Observations)).
+%     Returns a list of observations emitted from the LOHMM (or 'no' if Observations = ['STOP'])
+%
+%     * ?- sample(lohmm(Observations, States)).
+%     Returns a list of observations emitted and states traversed via the LOHMM (or 'no' if Observations = ['STOP'])
+%%%%%%
+
+%%------------------------------------
+%% Modeling section
+%%------------------------------------
+
 lohmm(Obs) :-
     lohmm(_, Obs).
 
@@ -48,47 +86,84 @@ generateID(Term, ID) :-
         )
     ).
 
-%%%
+%%------------------------------------
+%% Declarations section
+%%------------------------------------
 
-values(mu(emacs/2-1), [f1, f2]).
-values(mu(emacs/2-2), [tex, other]).
-
-values(mu(latex/2-1), [f1, f2]).
-values(mu(latex/2-2), [tex, other]).
-
-values(mu(ls/1-1), [tex, other]).
-
-%%%
-
+%%
+% [UPSILON] Prior distribution on starting states
+%%
 values(start, [start_r]).
-values(ls(U), [ls_r]).
-values(emacs(F, tex), [emacs_2_r]).
-values(emacs(F, U), [emacs_1_r]).
-values(latex(F, tex), [latex_r]).
-
 values(start_r, [start_r_1, start_r_2]).
+
 rule(start_r_1, start, (null, ls(U))).
 rule(start_r_2, start, (null, emacs(F, U))).
 
+%%
+% [MU] Grounding rules
+% ---
+% Each variable in the term has an associated probability over a typed domain.
+% It is assumed that the arguments are distributed independently via naive Bayes assumption (wrt the term name).
+% Variables which appear multiple times in a term will be bound once and the value shared via unification.
+%%
+
+% emacs/2
+values(mu(emacs/2-1), [f1, f2]).
+values(mu(emacs/2-2), [tex, other]).
+
+% latex/2
+values(mu(latex/2-1), [f1, f2]).
+values(mu(latex/2-2), [tex, other]).
+
+% ls/1
+values(mu(ls/1-1), [tex, other]).
+
+%%
+% [DELTA] Abstract transitions
+% ---
+% Each ground state is first matched to the most specific abstract state,
+%     then the transition is chosen based on transition probability,
+%     then the rule/2 which deterministically unifies is selected.
+%
+% values/2 for more general B should be placed below values/2 for more specific B, implementing the subsumption constraint.
+%%
+
+% ls(U)
+values(ls(U), [ls_r]).
 values(ls_r, [ls_r_1, ls_r_2, stop]). 
+
 rule(ls_r_1, ls(U), (ls, ls(U))).
 rule(ls_r_2, ls(U), (ls, emacs(F, U1))).
 
-values(emacs_1_r, [emacs_1_r_1, emacs_1_r_2, stop]).
-rule(emacs_1_r_1, emacs(F,U), (emacs(F), emacs(F1, U))).
-rule(emacs_1_r_2, emacs(F,U), (emacs(F), ls(U1))).
-
+% emacs(F, tex)
+values(emacs(F, tex), [emacs_2_r]).
 values(emacs_2_r, [emacs_2_r_1, emacs_2_r_2, emacs_2_r_3, stop]).
+
 rule(emacs_2_r_1, emacs(F, tex), (emacs(F), ls(U1))).
 rule(emacs_2_r_2, emacs(F, tex), (emacs(F), emacs(F1, tex))).
 rule(emacs_2_r_3, emacs(F, tex), (emacs(F), latex(F, tex))).
 
+% emacs(F, U)
+values(emacs(F, U), [emacs_1_r]).
+values(emacs_1_r, [emacs_1_r_1, emacs_1_r_2, stop]).
+
+rule(emacs_1_r_1, emacs(F,U), (emacs(F), emacs(F1, U))).
+rule(emacs_1_r_2, emacs(F,U), (emacs(F), ls(U1))).
+
+% latex(F, tex)
+values(latex(F, tex), [latex_r]).
 values(latex_r, [latex_r_1, latex_r_2, latex_r_3, stop]).
+
 rule(latex_r_1, latex(F, tex), (latex(F), ls(U1))).
 rule(latex_r_2, latex(F, tex), (latex(F), emacs(F1,U))).
 rule(latex_r_3, latex(F, tex), (latex(F), emacs(F,tex))).
 
+% stop state
 rule(stop, _, (stop, stop)).
+
+%%------------------------------------
+%% Utility section
+%%------------------------------------
 
 set_params :-
     set_sw(mu(emacs/2-1), [0.3, 0.7]),
