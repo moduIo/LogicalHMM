@@ -104,14 +104,15 @@ bind(Term, ID) :-
 % [allbind/4] allbind(Term, I, Args, ID)
 % ---
 % Term := term represented by <term_name>/<arity>, used to index msw
-% I := current iteration
+% I := current iteration which corresponds to the current arg position
 % Args := list of arguments in term
 % ID := generated ID of term
 % ---
 % Loop over Arg in Args:
 %     if Arg is not ground:
 %         ground Arg via MU
-%     
+%
+% The msw for MU is indexed via <term_name>/<arity>-<arg_position>
 %%
 allbind(F/N, _, [], ID) :- !. 
 
