@@ -109,7 +109,7 @@ bind(Term, ID) :-
 %     if Arg is not ground:
 %         ground Arg via MU
 %
-% The msw for MU is indexed via mu(<term_name>/<arity>-<arg_position>)
+% The msw for MU is indexed via mu(<term_name>/<arity>, <arg_position>)
 %%
 allbind(F/N, _, [], ID) :- !. 
 
@@ -180,7 +180,7 @@ values(mu(ls/1, 1), [tex, other]).
 % ---
 % Each ground state is first matched to the most specific abstract state,
 %     then the transition is chosen based on transition probability,
-%     returns the rule/3 which deterministically unifies with the selected transition (EX: ls_r_1).
+%     returns the rule/3 which deterministically unifies with the selected transition (EX: delta(ls, 1)).
 %
 % values/2 for more general B should be placed below values/2 for more specific B, 
 % implementing the subsumption constraint.
@@ -213,8 +213,8 @@ values(latex(F, tex), [latex_r]).
 values(latex_r, [delta(latex, 1), delta(latex, 2), delta(latex, 3), stop]).
 
 rule(delta(latex, 1), latex(F, tex), (latex(F), ls(U1))).
-rule(delta(latex, 2), latex(F, tex), (latex(F), emacs(F1,U))).
-rule(delta(latex, 3), latex(F, tex), (latex(F), emacs(F,tex))).
+rule(delta(latex, 2), latex(F, tex), (latex(F), emacs(F1, U))).
+rule(delta(latex, 3), latex(F, tex), (latex(F), emacs(F, tex))).
 
 % stop state
 rule(stop, _, (stop, stop)).
