@@ -13,6 +13,9 @@
 %
 %     ?- sample(lohmm(States, Observations)).
 %     Returns a list of observations emitted and states traversed via the LOHMM (or 'no' if Observations = [stop])
+%
+%     ?- prob(lohmm([emacs(f2), 'stop'])).
+%     Returns the probability of the bservation sequence.
 % ---
 % Example taken from "Logical Hidden Markov Models" - Kersting, De Raedt, Raiko; Figure 1.
 %%%%%%
@@ -111,15 +114,15 @@ bind(Term, ID) :-
 %
 % The msw for MU is indexed via mu(<term_name>/<arity>, <arg_position>)
 %%
-allbind(F/N, _, [], ID) :- !. 
+allbind(_, _, [], _) :- !. 
 
-allbind(F/N, I, [Arg|Args], ID) :-
+allbind(T, I, [Arg|Args], ID) :-
     (  var(Arg)            
-    -> msw(mu(F/N, I), Arg) 
+    -> msw(mu(T, I), Arg) 
     ;  true
     ),                         
     I1 is I + 1,
-    allbind(F/N, I1, Args, ID).
+    allbind(T, I1, Args, ID).
 
 %%
 % [generateID/2] generateID(Term, ID)
