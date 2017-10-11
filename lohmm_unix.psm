@@ -9,10 +9,10 @@
 % ---
 % USAGE:
 %     ?- sample(lohmm(Observations)).
-%     Returns a list of observations emitted from the LOHMM (or 'no' if Observations = [stop])
+%     Returns a list of observations emitted from the LOHMM
 %
 %     ?- sample(lohmm(States, Observations)).
-%     Returns a list of observations emitted and states traversed via the LOHMM (or 'no' if Observations = [stop])
+%     Returns a list of observations emitted and states traversed via the LOHMM
 %%%%%%
 
 %%------------------------------------
@@ -36,10 +36,8 @@ lohmm(Obs) :- lohmm(_, Obs).
 % ---
 % Returns the list of states and observations.
 %%
-lohmm(States, Obs) :-
-    set_params,                                 
-    lohmm(start, [start | States], [_ | Obs]),  
-    Obs \= [stop].                              
+lohmm(States, Obs) :-                 
+    lohmm(start, [start | States], [_ | Obs]). 
 
 %%
 % [lohmm/3] lohmm(Current, States, Observations)
@@ -53,15 +51,16 @@ lohmm(States, Obs) :-
 %     using these IDs, obs and next are ground,
 %     loop until the current state is stop.
 %%
-lohmm(stop, [], []) :- !.
-
 lohmm(State, [State|States], [Obs|Obss]) :- 
-    trans(State, Obs, Next),      
-    generateID(Obs, ID1),  
-    generateID(Next, ID2),  
-    bind(Obs, ID1),        
-    bind(Next, ID2),        
-    lohmm(Next, States, Obss).    
+    trans(State, Obs, Next),
+    (  Next = stop
+    -> Obss = [], !
+    ;  generateID(Obs, ID1),  
+       generateID(Next, ID2),  
+       bind(Obs, ID1),  
+       bind(Next, ID2),
+       lohmm(Next, States, Obss)
+    ).
 
 %%
 % [trans/3] trans(Current, Obs, Next)
@@ -139,3 +138,58 @@ generateID(Term, ID) :-
         ;  ID^1 is ID^0 
         )
     ).
+
+%%------------------------------------
+%% Declarations section
+%%------------------------------------
+
+%%
+% [UPSILON] Prior distribution on starting states
+%%
+values(start, [start_r]).
+values(start_r, [upsilon(start, 1), upsilon(start, 2)]).
+
+rule(upsilon(start, 1), start, (null, com)).
+rule(upsilon(start, 2), start, (null, mkdir(Dir, start))).
+
+%%
+% [DELTA] Abstract transitions
+% ---
+% Each ground state is first matched to the most specific abstract state,
+%     then the transition is chosen based on transition probability,
+%     returns the rule/3 which deterministically unifies with the selected transition (EX: delta(ls, 1)).
+%
+% values/2 for more general B should be placed below values/2 for more specific B, 
+% implementing the subsumption constraint.
+%%
+
+% mkdir(Dir, start)
+values(mkdir(Dir, start), [mkdir_1_r]).
+values(mkdir_1_r, [delta(mkdir_1_r, 1), delta(mkdir_1_r, 2), delta(mkdir_1_r, 3), delta(mkdir_1_r, 4), delta(mkdir_1_r, 5), delta(mkdir_1_r, 6), delta(mkdir_1_r, 7), delta(mkdir_1_r, 8), delta(mkdir_1_r, 9), delta(mkdir_1_r, 10), delta(mkdir_1_r, 11), delta(mkdir_1_r, 12), delta(mkdir_1_r, 13), delta(mkdir_1_r, 14)]).
+
+rule(delta(mkdir_1_r, 1), mkdir(Dir, start), (mkdir(Dir), mkdir(Dir, com))).
+rule(delta(mkdir_1_r, 2), mkdir(Dir, start), (mkdir(Dir), mkdir(_, com))).
+rule(delta(mkdir_1_r, 3), mkdir(Dir, start), (mkdir(Dir), com)).
+rule(delta(mkdir_1_r, 4), mkdir(Dir, start), (mkdir(Dir), ls(Dir, mkdir))).
+rule(delta(mkdir_1_r, 5), mkdir(Dir, start), (mkdir(Dir), ls(_, mkdir))).
+rule(delta(mkdir_1_r, 6), mkdir(Dir, start), (mkdir(Dir), cd(Dir, mkdir))).
+rule(delta(mkdir_1_r, 7), mkdir(Dir, start), (mkdir(Dir), cd(_, mkdir))).
+rule(delta(mkdir_1_r, 8), mkdir(Dir, start), (mkdir(Dir), cp(_, Dir, mkdir))).
+rule(delta(mkdir_1_r, 9), mkdir(Dir, start), (mkdir(Dir), cp(Dir, _, mkdir))).
+rule(delta(mkdir_1_r, 10), mkdir(Dir, start), (mkdir(Dir), cp(_, _, mkdir))).
+rule(delta(mkdir_1_r, 11), mkdir(Dir, start), (mkdir(Dir), mv(_, Dir, mkdir))).
+rule(delta(mkdir_1_r, 12), mkdir(Dir, start), (mkdir(Dir), mv(Dir, _, mkdir))).
+rule(delta(mkdir_1_r, 13), mkdir(Dir, start), (mkdir(Dir), mv(_, _, mkdir))).
+rule(delta(mkdir_1_r, 14), mkdir(Dir, start), (mkdir(Dir), end)).
+
+%%
+% [MU] Grounding rules
+% ---
+% Each variable in the term has an associated probability over a typed domain.
+% It is assumed that the arguments are distributed independently via naive Bayes assumption (wrt the term name).
+% Variables which appear multiple times in a term will be bound once in allbind/4 
+% and the value will be shared via unification.
+%%
+
+% mkdir/2
+values(mu(mkdir/2, 1), [d1, d2, d3, d4]).

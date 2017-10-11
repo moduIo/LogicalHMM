@@ -9,13 +9,13 @@
 % ---
 % USAGE:
 %     ?- sample(lohmm(Observations)).
-%     Returns a list of observations emitted from the LOHMM (or 'no' if Observations = [stop])
+%     Returns a list of observations emitted from the LOHMM
 %
 %     ?- sample(lohmm(States, Observations)).
-%     Returns a list of observations emitted and states traversed via the LOHMM (or 'no' if Observations = [stop])
+%     Returns a list of observations emitted and states traversed via the LOHMM
 %
-%     ?- prob(lohmm([emacs(f2), 'stop'])).
-%     Returns the probability of the bservation sequence.
+%     ?- prob(lohmm([emacs(f2)])).
+%     Returns the probability of the observation sequence.
 % ---
 % Example taken from "Logical Hidden Markov Models" - Kersting, De Raedt, Raiko; Figure 1.
 %%%%%%
@@ -43,8 +43,7 @@ lohmm(Obs) :- lohmm(_, Obs).
 %%
 lohmm(States, Obs) :-
     set_params,                                 
-    lohmm(start, [start | States], [_ | Obs]),  
-    Obs \= [stop].                              
+    lohmm(start, [start | States], [_ | Obs]). 
 
 %%
 % [lohmm/3] lohmm(Current, States, Observations)
@@ -58,15 +57,16 @@ lohmm(States, Obs) :-
 %     using these IDs, obs and next are ground,
 %     loop until the current state is stop.
 %%
-lohmm(stop, [], []) :- !.
-
 lohmm(State, [State|States], [Obs|Obss]) :- 
-    trans(State, Obs, Next),      
-    generateID(Obs, ID1),  
-    generateID(Next, ID2),  
-    bind(Obs, ID1),        
-    bind(Next, ID2),        
-    lohmm(Next, States, Obss).    
+    trans(State, Obs, Next),
+    (  Next = stop
+    -> Obss = [], !
+    ;  generateID(Obs, ID1),  
+       generateID(Next, ID2),  
+       bind(Obs, ID1),  
+       bind(Next, ID2),
+       lohmm(Next, States, Obss)
+    ).
 
 %%
 % [trans/3] trans(Current, Obs, Next)
@@ -159,6 +159,51 @@ rule(upsilon(start, 1), start, (null, ls(U))).
 rule(upsilon(start, 2), start, (null, emacs(F, U))).
 
 %%
+% [DELTA] Abstract transitions
+% ---
+% Each ground state is first matched to the most specific abstract state,
+%     then the transition is chosen based on transition probability,
+%     returns the rule/3 which deterministically unifies with the selected transition (EX: delta(ls, 1)).
+%
+% values/2 for more general B should be placed below values/2 for more specific B, 
+% implementing the subsumption constraint.
+%%
+
+% ls(U)
+values(ls(U), [ls_r]).
+values(ls_r, [delta(ls, 1), delta(ls, 2), delta(ls, 3)]). 
+
+rule(delta(ls, 1), ls(U), (ls, ls(U))).
+rule(delta(ls, 2), ls(U), (ls, emacs(F, U1))).
+rule(delta(ls, 3), ls(U), (ls, stop)).
+
+% emacs(F, tex)
+values(emacs(F, tex), [emacs_2_r]).
+values(emacs_2_r, [delta(emacs_2, 1), delta(emacs_2, 2), delta(emacs_2, 3), delta(emacs_2, 4)]).
+
+rule(delta(emacs_2, 1), emacs(F, tex), (emacs(F), ls(U1))).
+rule(delta(emacs_2, 2), emacs(F, tex), (emacs(F), emacs(F1, tex))).
+rule(delta(emacs_2, 3), emacs(F, tex), (emacs(F), latex(F, tex))).
+rule(delta(emacs_2, 4), emacs(F, tex), (emacs(F), stop)).
+
+% emacs(F, U)
+values(emacs(F, U), [emacs_1_r]).
+values(emacs_1_r, [delta(emacs_1, 1), delta(emacs_1, 2), delta(emacs_1, 3)]).
+
+rule(delta(emacs_1, 1), emacs(F,U), (emacs(F), emacs(F1, U))).
+rule(delta(emacs_1, 2), emacs(F,U), (emacs(F), ls(U1))).
+rule(delta(emacs_1, 3), emacs(F,U), (emacs(F), stop)).
+
+% latex(F, tex)
+values(latex(F, tex), [latex_r]).
+values(latex_r, [delta(latex, 1), delta(latex, 2), delta(latex, 3), delta(latex, 4)]).
+
+rule(delta(latex, 1), latex(F, tex), (latex(F), ls(U1))).
+rule(delta(latex, 2), latex(F, tex), (latex(F), emacs(F1, U))).
+rule(delta(latex, 3), latex(F, tex), (latex(F), emacs(F, tex))).
+rule(delta(latex, 4), latex(F, tex), (latex(F), stop)).
+
+%%
 % [MU] Grounding rules
 % ---
 % Each variable in the term has an associated probability over a typed domain.
@@ -177,50 +222,6 @@ values(mu(latex/2, 2), [tex, other]).
 
 % ls/1
 values(mu(ls/1, 1), [tex, other]).
-
-%%
-% [DELTA] Abstract transitions
-% ---
-% Each ground state is first matched to the most specific abstract state,
-%     then the transition is chosen based on transition probability,
-%     returns the rule/3 which deterministically unifies with the selected transition (EX: delta(ls, 1)).
-%
-% values/2 for more general B should be placed below values/2 for more specific B, 
-% implementing the subsumption constraint.
-%%
-
-% ls(U)
-values(ls(U), [ls_r]).
-values(ls_r, [delta(ls, 1), delta(ls, 2), stop]). 
-
-rule(delta(ls, 1), ls(U), (ls, ls(U))).
-rule(delta(ls, 2), ls(U), (ls, emacs(F, U1))).
-
-% emacs(F, tex)
-values(emacs(F, tex), [emacs_2_r]).
-values(emacs_2_r, [delta(emacs_2, 1), delta(emacs_2, 2), delta(emacs_2, 3), stop]).
-
-rule(delta(emacs_2, 1), emacs(F, tex), (emacs(F), ls(U1))).
-rule(delta(emacs_2, 2), emacs(F, tex), (emacs(F), emacs(F1, tex))).
-rule(delta(emacs_2, 3), emacs(F, tex), (emacs(F), latex(F, tex))).
-
-% emacs(F, U)
-values(emacs(F, U), [emacs_1_r]).
-values(emacs_1_r, [delta(emacs_1, 1), delta(emacs_1, 2), stop]).
-
-rule(delta(emacs_1, 1), emacs(F,U), (emacs(F), emacs(F1, U))).
-rule(delta(emacs_1, 2), emacs(F,U), (emacs(F), ls(U1))).
-
-% latex(F, tex)
-values(latex(F, tex), [latex_r]).
-values(latex_r, [delta(latex, 1), delta(latex, 2), delta(latex, 3), stop]).
-
-rule(delta(latex, 1), latex(F, tex), (latex(F), ls(U1))).
-rule(delta(latex, 2), latex(F, tex), (latex(F), emacs(F1, U))).
-rule(delta(latex, 3), latex(F, tex), (latex(F), emacs(F, tex))).
-
-% stop state
-rule(stop, _, (stop, stop)).
 
 %%------------------------------------
 %% Utility section
