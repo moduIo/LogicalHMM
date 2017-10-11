@@ -1,0 +1,141 @@
+%%%%%%
+% Model of a Logical Hidden Markov Model (LOHMM)
+% LM = (SIGMA, MU, DELTA, UPSILON)
+% Where
+%     SIGMA := logical alphabet
+%     MU := selection (grounding) probability over SIGMA
+%     DELTA := set of abstract transitions T = (p : H <- B emitting O)
+%     UPSILON := set of abstract transitions encoding a prior distribution of states
+% ---
+% USAGE:
+%     ?- sample(lohmm(Observations)).
+%     Returns a list of observations emitted from the LOHMM (or 'no' if Observations = [stop])
+%
+%     ?- sample(lohmm(States, Observations)).
+%     Returns a list of observations emitted and states traversed via the LOHMM (or 'no' if Observations = [stop])
+%%%%%%
+
+%%------------------------------------
+%% Modeling section
+%%------------------------------------
+
+%%
+% [lohmm/1] lohmm(Observations)
+% ---
+% Observations := a list of observations emitted from the LOHMM
+% ---
+% Returns the list of observations.
+%%
+lohmm(Obs) :- lohmm(_, Obs).
+
+%%
+% [lohmm/2] lohmm(States, Observations)
+% ---
+% States := a list of states traversed
+% Observations := a list of observations emitted from the LOHMM
+% ---
+% Returns the list of states and observations.
+%%
+lohmm(States, Obs) :-
+    set_params,                                 
+    lohmm(start, [start | States], [_ | Obs]),  
+    Obs \= [stop].                              
+
+%%
+% [lohmm/3] lohmm(Current, States, Observations)
+% ---
+% Current := the current ground state
+% States := a list of states traversed
+% Observations := a list of observations emitted from the LOHMM
+% ---
+% Selects trans/3 based on the current state,
+%     IDs are generated for the partially ground obs and next,
+%     using these IDs, obs and next are ground,
+%     loop until the current state is stop.
+%%
+lohmm(stop, [], []) :- !.
+
+lohmm(State, [State|States], [Obs|Obss]) :- 
+    trans(State, Obs, Next),      
+    generateID(Obs, ID1),  
+    generateID(Next, ID2),  
+    bind(Obs, ID1),        
+    bind(Next, ID2),        
+    lohmm(Next, States, Obss).    
+
+%%
+% [trans/3] trans(Current, Obs, Next)
+% ---
+% Current := the current ground state
+% Obs := the partially ground observation
+% Next := the partially ground next state
+% ---
+% First selects a RuleID (to implement subsumption constraint),
+%     then uses the DELTA transitions of Rule_ID to select the next Rule,
+%     unifies rule/3 based on the current state and the selected Rule.
+%
+% NOTE: Rule itself is also an identifier used so that all instances which may
+% unify with some msw will share the same transition probability space for learning.
+%%
+trans(State, Obs, Next) :-
+    msw(State, RuleID),         
+    msw(RuleID, Rule),         
+    rule(Rule, State, (Obs, Next)).  
+
+%%
+% [bind/2] bind(Term, ID)
+% ---
+% Term := patially ground term
+% ID := ID generated for the term
+% ---
+% Accesses Term arity and arguments and calls allbind/3 to ground the term.
+%%
+bind(Term, ID) :- 
+    functor(Term, F, N),         
+    Term =.. [F|Args],             
+    allbind(F/N, 1, Args, ID). 
+
+%%
+% [allbind/4] allbind(Term, I, Args, ID)
+% ---
+% Term := term represented by <term_name>/<arity>, used to index msw
+% I := current iteration which corresponds to the current arg position
+% Args := list of arguments in term
+% ID := generated ID of term
+% ---
+% Loop over Arg in Args:
+%     if Arg is not ground:
+%         ground Arg via MU
+%
+% The msw for MU is indexed via mu(<term_name>/<arity>, <arg_position>)
+%%
+allbind(_, _, [], _) :- !. 
+
+allbind(T, I, [Arg|Args], ID) :-
+    (  var(Arg)            
+    -> msw(mu(T, I), Arg) 
+    ;  true
+    ),                         
+    I1 is I + 1,
+    allbind(T, I1, Args, ID).
+
+%%
+% [generateID/2] generateID(Term, ID)
+% ---
+% Term := partially ground term
+% ID := generated ID of term based on unground variable positions
+% ---
+% Generates an ID for a term by summation over the positions of the unground variables.
+% IDs are generated to avoid some unwanted instances of tabling during explaination generation in PRISM.
+%%
+generateID(Term, 0) :- ground(Term), !.
+
+generateID(Term, ID) :-
+    Term =.. [_ | Args],
+    length(Args, N),
+    foreach( (Arg, I) in (Args, 1..N), ac(ID, 0),
+        (  var(Arg)
+        -> ID^1 is ID^0 + (I * N)
+        ;  ID^1 is ID^0 
+        )
+    ).
