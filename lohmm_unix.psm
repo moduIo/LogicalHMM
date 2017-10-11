@@ -163,6 +163,14 @@ rule(upsilon(start, 2), start, (null, mkdir(Dir, start))).
 % implementing the subsumption constraint.
 %%
 
+% com
+values(com, [com_r]).
+values(com_r, [delta(com_r, 1), delta(com_r, 2), delta(com_r, 3)])
+
+rule(delta(com_r, 1), com, (com, com)).
+rule(delta(com_r, 1), com, (com, mkdir(_, com))).
+rule(delta(com_r, 3), com, (com, stop)).
+
 % mkdir(Dir, start)
 values(mkdir(Dir, start), [mkdir_1_r]).
 values(mkdir_1_r, [delta(mkdir_1_r, 1), delta(mkdir_1_r, 2), delta(mkdir_1_r, 3), delta(mkdir_1_r, 4), delta(mkdir_1_r, 5), delta(mkdir_1_r, 6), delta(mkdir_1_r, 7), delta(mkdir_1_r, 8), delta(mkdir_1_r, 9), delta(mkdir_1_r, 10), delta(mkdir_1_r, 11), delta(mkdir_1_r, 12), delta(mkdir_1_r, 13), delta(mkdir_1_r, 14)]).
@@ -180,7 +188,26 @@ rule(delta(mkdir_1_r, 10), mkdir(Dir, start), (mkdir(Dir), cp(_, _, mkdir))).
 rule(delta(mkdir_1_r, 11), mkdir(Dir, start), (mkdir(Dir), mv(_, Dir, mkdir))).
 rule(delta(mkdir_1_r, 12), mkdir(Dir, start), (mkdir(Dir), mv(Dir, _, mkdir))).
 rule(delta(mkdir_1_r, 13), mkdir(Dir, start), (mkdir(Dir), mv(_, _, mkdir))).
-rule(delta(mkdir_1_r, 14), mkdir(Dir, start), (mkdir(Dir), end)).
+rule(delta(mkdir_1_r, 14), mkdir(Dir, start), (mkdir(Dir), stop)).
+
+% mkdir(Dir, com)
+values(mkdir(Dir, com), [mkdir_2_r]).
+values(mkdir_2_r, [delta(mkdir_2_r, 1), delta(mkdir_2_r, 2), delta(mkdir_2_r, 3), delta(mkdir_2_r, 4), delta(mkdir_2_r, 5), delta(mkdir_2_r, 6), delta(mkdir_2_r, 7), delta(mkdir_2_r, 8), delta(mkdir_2_r, 9), delta(mkdir_2_r, 10), delta(mkdir_2_r, 11), delta(mkdir_2_r, 12), delta(mkdir_2_r, 13), delta(mkdir_2_r, 14)]).
+
+rule(delta(mkdir_2_r, 1), mkdir(Dir, com), (mkdir(Dir), mkdir(Dir, com))).
+rule(delta(mkdir_2_r, 2), mkdir(Dir, com), (mkdir(Dir), mkdir(_, com))).
+rule(delta(mkdir_2_r, 3), mkdir(Dir, com), (mkdir(Dir), com)).
+rule(delta(mkdir_2_r, 4), mkdir(Dir, com), (mkdir(Dir), ls(Dir, mkdir))).
+rule(delta(mkdir_2_r, 5), mkdir(Dir, com), (mkdir(Dir), ls(_, mkdir))).
+rule(delta(mkdir_2_r, 6), mkdir(Dir, com), (mkdir(Dir), cd(Dir, mkdir))).
+rule(delta(mkdir_2_r, 7), mkdir(Dir, com), (mkdir(Dir), cd(_, mkdir))).
+rule(delta(mkdir_2_r, 8), mkdir(Dir, com), (mkdir(Dir), cp(_, Dir, mkdir))).
+rule(delta(mkdir_2_r, 9), mkdir(Dir, com), (mkdir(Dir), cp(Dir, _, mkdir))).
+rule(delta(mkdir_2_r, 10), mkdir(Dir, com), (mkdir(Dir), cp(_, _, mkdir))).
+rule(delta(mkdir_2_r, 11), mkdir(Dir, com), (mkdir(Dir), mv(_, Dir, mkdir))).
+rule(delta(mkdir_2_r, 12), mkdir(Dir, com), (mkdir(Dir), mv(Dir, _, mkdir))).
+rule(delta(mkdir_2_r, 13), mkdir(Dir, com), (mkdir(Dir), mv(_, _, mkdir))).
+rule(delta(mkdir_2_r, 14), mkdir(Dir, com), (mkdir(Dir), stop)).
 
 %%
 % [MU] Grounding rules
