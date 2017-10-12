@@ -419,6 +419,106 @@ rule(delta(ls_5, 14), ls(Dir, mv), (ls(Dir), stop)).
 % cp/3
 %
 
+% cp(From, To, mkdir)
+values(cp(From, To, mkdir), [cp_1_r]).
+values(cp_1_r, [delta(cp_1, 1), delta(cp_1, 2), delta(cp_1, 3), delta(cp_1, 4), delta(cp_1, 5), delta(cp_1, 6), delta(cp_1, 7), delta(cp_1, 8), delta(cp_1, 9), delta(cp_1, 10), delta(cp_1, 11), delta(cp_1, 12), delta(cp_1, 13), delta(cp_1, 14), delta(cp_1, 15)]).
+
+rule(delta(cp_1, 1), cp(From, To, mkdir), (cp(From, To), mkdir(_, com))).
+rule(delta(cp_1, 2), cp(From, To, mkdir), (cp(From, To), com)).
+rule(delta(cp_1, 3), cp(From, To, mkdir), (cp(From, To), ls(From, cp))).
+rule(delta(cp_1, 4), cp(From, To, mkdir), (cp(From, To), ls(To, cp))).
+rule(delta(cp_1, 5), cp(From, To, mkdir), (cp(From, To), ls(_, cp))).
+rule(delta(cp_1, 6), cp(From, To, mkdir), (cp(From, To), cd(From, cp))).
+rule(delta(cp_1, 7), cp(From, To, mkdir), (cp(From, To), cd(To, cp))).
+rule(delta(cp_1, 8), cp(From, To, mkdir), (cp(From, To), cd(_, cp))).
+rule(delta(cp_1, 9), cp(From, To, mkdir), (cp(From, To), cp(From, _, cp))).
+rule(delta(cp_1, 10), cp(From, To, mkdir), (cp(From, To), cp(_, To, cp))).
+rule(delta(cp_1, 11), cp(From, To, mkdir), (cp(From, To), cp(_, _, cp))).
+rule(delta(cp_1, 12), cp(From, To, mkdir), (cp(From, To), mv(From, _, cp))).
+rule(delta(cp_1, 13), cp(From, To, mkdir), (cp(From, To), mv(_, To, cp))).
+rule(delta(cp_1, 14), cp(From, To, mkdir), (cp(From, To), mv(_, _, cp))).
+rule(delta(cp_1, 15), cp(From, To, mkdir), (cp(From, To), stop)).
+
+% cp(From, To, ls)
+values(cp(From, To, ls), [cp_2_r]).
+values(cp_2_r, [delta(cp_2, 1), delta(cp_2, 2), delta(cp_2, 3), delta(cp_2, 4), delta(cp_2, 5), delta(cp_2, 6), delta(cp_2, 7), delta(cp_2, 8), delta(cp_2, 9), delta(cp_2, 10), delta(cp_2, 11), delta(cp_2, 12), delta(cp_2, 13), delta(cp_2, 14), delta(cp_2, 15)]).
+
+rule(delta(cp_2, 1), cp(From, To, ls), (cp(From, To), mkdir(_, com))).
+rule(delta(cp_2, 2), cp(From, To, ls), (cp(From, To), com)).
+rule(delta(cp_2, 3), cp(From, To, ls), (cp(From, To), ls(From, cp))).
+rule(delta(cp_2, 4), cp(From, To, ls), (cp(From, To), ls(To, cp))).
+rule(delta(cp_2, 5), cp(From, To, ls), (cp(From, To), ls(_, cp))).
+rule(delta(cp_2, 6), cp(From, To, ls), (cp(From, To), cd(From, cp))).
+rule(delta(cp_2, 7), cp(From, To, ls), (cp(From, To), cd(To, cp))).
+rule(delta(cp_2, 8), cp(From, To, ls), (cp(From, To), cd(_, cp))).
+rule(delta(cp_2, 9), cp(From, To, ls), (cp(From, To), cp(From, _, cp))).
+rule(delta(cp_2, 10), cp(From, To, ls), (cp(From, To), cp(_, To, cp))).
+rule(delta(cp_2, 11), cp(From, To, ls), (cp(From, To), cp(_, _, cp))).
+rule(delta(cp_2, 12), cp(From, To, ls), (cp(From, To), mv(From, _, cp))).
+rule(delta(cp_2, 13), cp(From, To, ls), (cp(From, To), mv(_, To, cp))).
+rule(delta(cp_2, 14), cp(From, To, ls), (cp(From, To), mv(_, _, cp))).
+rule(delta(cp_2, 15), cp(From, To, ls), (cp(From, To), stop)).
+
+% cp(From, To, cd)
+values(cp(From, To, cd), [cp_3_r]).
+values(cp_3_r, [delta(cp_3, 1), delta(cp_3, 2), delta(cp_3, 3), delta(cp_3, 4), delta(cp_3, 5), delta(cp_3, 6), delta(cp_3, 7), delta(cp_3, 8), delta(cp_3, 9), delta(cp_3, 10), delta(cp_3, 11), delta(cp_3, 12), delta(cp_3, 13), delta(cp_3, 14), delta(cp_3, 15)]).
+
+rule(delta(cp_3, 1), cp(From, To, cd), (cp(From, To), mkdir(_, com))).
+rule(delta(cp_3, 2), cp(From, To, cd), (cp(From, To), com)).
+rule(delta(cp_3, 3), cp(From, To, cd), (cp(From, To), ls(From, cp))).
+rule(delta(cp_3, 4), cp(From, To, cd), (cp(From, To), ls(To, cp))).
+rule(delta(cp_3, 5), cp(From, To, cd), (cp(From, To), ls(_, cp))).
+rule(delta(cp_3, 6), cp(From, To, cd), (cp(From, To), cd(From, cp))).
+rule(delta(cp_3, 7), cp(From, To, cd), (cp(From, To), cd(To, cp))).
+rule(delta(cp_3, 8), cp(From, To, cd), (cp(From, To), cd(_, cp))).
+rule(delta(cp_3, 9), cp(From, To, cd), (cp(From, To), cp(From, _, cp))).
+rule(delta(cp_3, 10), cp(From, To, cd), (cp(From, To), cp(_, To, cp))).
+rule(delta(cp_3, 11), cp(From, To, cd), (cp(From, To), cp(_, _, cp))).
+rule(delta(cp_3, 12), cp(From, To, cd), (cp(From, To), mv(From, _, cp))).
+rule(delta(cp_3, 13), cp(From, To, cd), (cp(From, To), mv(_, To, cp))).
+rule(delta(cp_3, 14), cp(From, To, cd), (cp(From, To), mv(_, _, cp))).
+rule(delta(cp_3, 15), cp(From, To, cd), (cp(From, To), stop)).
+
+% cp(From, To, cp)
+values(cp(From, To, cp), [cp_4_r]).
+values(cp_4_r, [delta(cp_4, 1), delta(cp_4, 2), delta(cp_4, 3), delta(cp_4, 4), delta(cp_4, 5), delta(cp_4, 6), delta(cp_4, 7), delta(cp_4, 8), delta(cp_4, 9), delta(cp_4, 10), delta(cp_4, 11), delta(cp_4, 12), delta(cp_4, 13), delta(cp_4, 14), delta(cp_4, 15)]).
+
+rule(delta(cp_4, 1), cp(From, To, cp), (cp(From, To), mkdir(_, com))).
+rule(delta(cp_4, 2), cp(From, To, cp), (cp(From, To), com)).
+rule(delta(cp_4, 3), cp(From, To, cp), (cp(From, To), ls(From, cp))).
+rule(delta(cp_4, 4), cp(From, To, cp), (cp(From, To), ls(To, cp))).
+rule(delta(cp_4, 5), cp(From, To, cp), (cp(From, To), ls(_, cp))).
+rule(delta(cp_4, 6), cp(From, To, cp), (cp(From, To), cd(From, cp))).
+rule(delta(cp_4, 7), cp(From, To, cp), (cp(From, To), cd(To, cp))).
+rule(delta(cp_4, 8), cp(From, To, cp), (cp(From, To), cd(_, cp))).
+rule(delta(cp_4, 9), cp(From, To, cp), (cp(From, To), cp(From, _, cp))).
+rule(delta(cp_4, 10), cp(From, To, cp), (cp(From, To), cp(_, To, cp))).
+rule(delta(cp_4, 11), cp(From, To, cp), (cp(From, To), cp(_, _, cp))).
+rule(delta(cp_4, 12), cp(From, To, cp), (cp(From, To), mv(From, _, cp))).
+rule(delta(cp_4, 13), cp(From, To, cp), (cp(From, To), mv(_, To, cp))).
+rule(delta(cp_4, 14), cp(From, To, cp), (cp(From, To), mv(_, _, cp))).
+rule(delta(cp_4, 15), cp(From, To, cp), (cp(From, To), stop)).
+
+% cp(From, To, mv)
+values(cp(From, To, mv), [cp_5_r]).
+values(cp_5_r, [delta(cp_5, 1), delta(cp_5, 2), delta(cp_5, 3), delta(cp_5, 4), delta(cp_5, 5), delta(cp_5, 6), delta(cp_5, 7), delta(cp_5, 8), delta(cp_5, 9), delta(cp_5, 10), delta(cp_5, 11), delta(cp_5, 12), delta(cp_5, 13), delta(cp_5, 14), delta(cp_5, 15)]).
+
+rule(delta(cp_5, 1), cp(From, To, mv), (cp(From, To), mkdir(_, com))).
+rule(delta(cp_5, 2), cp(From, To, mv), (cp(From, To), com)).
+rule(delta(cp_5, 3), cp(From, To, mv), (cp(From, To), ls(From, cp))).
+rule(delta(cp_5, 4), cp(From, To, mv), (cp(From, To), ls(To, cp))).
+rule(delta(cp_5, 5), cp(From, To, mv), (cp(From, To), ls(_, cp))).
+rule(delta(cp_5, 6), cp(From, To, mv), (cp(From, To), cd(From, cp))).
+rule(delta(cp_5, 7), cp(From, To, mv), (cp(From, To), cd(To, cp))).
+rule(delta(cp_5, 8), cp(From, To, mv), (cp(From, To), cd(_, cp))).
+rule(delta(cp_5, 9), cp(From, To, mv), (cp(From, To), cp(From, _, cp))).
+rule(delta(cp_5, 10), cp(From, To, mv), (cp(From, To), cp(_, To, cp))).
+rule(delta(cp_5, 11), cp(From, To, mv), (cp(From, To), cp(_, _, cp))).
+rule(delta(cp_5, 12), cp(From, To, mv), (cp(From, To), mv(From, _, cp))).
+rule(delta(cp_5, 13), cp(From, To, mv), (cp(From, To), mv(_, To, cp))).
+rule(delta(cp_5, 14), cp(From, To, mv), (cp(From, To), mv(_, _, cp))).
+rule(delta(cp_5, 15), cp(From, To, mv), (cp(From, To), stop)).
+
 %
 % mv/3
 %
