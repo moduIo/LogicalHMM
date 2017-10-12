@@ -163,6 +163,10 @@ rule(upsilon(start, 2), start, (null, mkdir(Dir, start))).
 % implementing the subsumption constraint.
 %%
 
+%
+% com/0
+%
+
 % com
 values(com, [com_r]).
 values(com_r, [delta(com_r, 1), delta(com_r, 2), delta(com_r, 3)])
@@ -171,43 +175,253 @@ rule(delta(com_r, 1), com, (com, com)).
 rule(delta(com_r, 1), com, (com, mkdir(_, com))).
 rule(delta(com_r, 3), com, (com, stop)).
 
+%
+% mkdir/2
+%
+
 % mkdir(Dir, start)
 values(mkdir(Dir, start), [mkdir_1_r]).
 values(mkdir_1_r, [delta(mkdir_1_r, 1), delta(mkdir_1_r, 2), delta(mkdir_1_r, 3), delta(mkdir_1_r, 4), delta(mkdir_1_r, 5), delta(mkdir_1_r, 6), delta(mkdir_1_r, 7), delta(mkdir_1_r, 8), delta(mkdir_1_r, 9), delta(mkdir_1_r, 10), delta(mkdir_1_r, 11), delta(mkdir_1_r, 12), delta(mkdir_1_r, 13), delta(mkdir_1_r, 14)]).
 
-rule(delta(mkdir_1_r, 1), mkdir(Dir, start), (mkdir(Dir), mkdir(Dir, com))).
-rule(delta(mkdir_1_r, 2), mkdir(Dir, start), (mkdir(Dir), mkdir(_, com))).
-rule(delta(mkdir_1_r, 3), mkdir(Dir, start), (mkdir(Dir), com)).
-rule(delta(mkdir_1_r, 4), mkdir(Dir, start), (mkdir(Dir), ls(Dir, mkdir))).
-rule(delta(mkdir_1_r, 5), mkdir(Dir, start), (mkdir(Dir), ls(_, mkdir))).
-rule(delta(mkdir_1_r, 6), mkdir(Dir, start), (mkdir(Dir), cd(Dir, mkdir))).
-rule(delta(mkdir_1_r, 7), mkdir(Dir, start), (mkdir(Dir), cd(_, mkdir))).
-rule(delta(mkdir_1_r, 8), mkdir(Dir, start), (mkdir(Dir), cp(_, Dir, mkdir))).
-rule(delta(mkdir_1_r, 9), mkdir(Dir, start), (mkdir(Dir), cp(Dir, _, mkdir))).
-rule(delta(mkdir_1_r, 10), mkdir(Dir, start), (mkdir(Dir), cp(_, _, mkdir))).
-rule(delta(mkdir_1_r, 11), mkdir(Dir, start), (mkdir(Dir), mv(_, Dir, mkdir))).
-rule(delta(mkdir_1_r, 12), mkdir(Dir, start), (mkdir(Dir), mv(Dir, _, mkdir))).
-rule(delta(mkdir_1_r, 13), mkdir(Dir, start), (mkdir(Dir), mv(_, _, mkdir))).
-rule(delta(mkdir_1_r, 14), mkdir(Dir, start), (mkdir(Dir), stop)).
+rule(delta(mkdir_1, 1), mkdir(Dir, start), (mkdir(Dir), mkdir(Dir, com))).
+rule(delta(mkdir_1, 2), mkdir(Dir, start), (mkdir(Dir), mkdir(_, com))).
+rule(delta(mkdir_1, 3), mkdir(Dir, start), (mkdir(Dir), com)).
+rule(delta(mkdir_1, 4), mkdir(Dir, start), (mkdir(Dir), ls(Dir, mkdir))).
+rule(delta(mkdir_1, 5), mkdir(Dir, start), (mkdir(Dir), ls(_, mkdir))).
+rule(delta(mkdir_1, 6), mkdir(Dir, start), (mkdir(Dir), cd(Dir, mkdir))).
+rule(delta(mkdir_1, 7), mkdir(Dir, start), (mkdir(Dir), cd(_, mkdir))).
+rule(delta(mkdir_1, 8), mkdir(Dir, start), (mkdir(Dir), cp(_, Dir, mkdir))).
+rule(delta(mkdir_1, 9), mkdir(Dir, start), (mkdir(Dir), cp(Dir, _, mkdir))).
+rule(delta(mkdir_1, 10), mkdir(Dir, start), (mkdir(Dir), cp(_, _, mkdir))).
+rule(delta(mkdir_1, 11), mkdir(Dir, start), (mkdir(Dir), mv(_, Dir, mkdir))).
+rule(delta(mkdir_1, 12), mkdir(Dir, start), (mkdir(Dir), mv(Dir, _, mkdir))).
+rule(delta(mkdir_1, 13), mkdir(Dir, start), (mkdir(Dir), mv(_, _, mkdir))).
+rule(delta(mkdir_1, 14), mkdir(Dir, start), (mkdir(Dir), stop)).
 
 % mkdir(Dir, com)
 values(mkdir(Dir, com), [mkdir_2_r]).
 values(mkdir_2_r, [delta(mkdir_2_r, 1), delta(mkdir_2_r, 2), delta(mkdir_2_r, 3), delta(mkdir_2_r, 4), delta(mkdir_2_r, 5), delta(mkdir_2_r, 6), delta(mkdir_2_r, 7), delta(mkdir_2_r, 8), delta(mkdir_2_r, 9), delta(mkdir_2_r, 10), delta(mkdir_2_r, 11), delta(mkdir_2_r, 12), delta(mkdir_2_r, 13), delta(mkdir_2_r, 14)]).
 
-rule(delta(mkdir_2_r, 1), mkdir(Dir, com), (mkdir(Dir), mkdir(Dir, com))).
-rule(delta(mkdir_2_r, 2), mkdir(Dir, com), (mkdir(Dir), mkdir(_, com))).
-rule(delta(mkdir_2_r, 3), mkdir(Dir, com), (mkdir(Dir), com)).
-rule(delta(mkdir_2_r, 4), mkdir(Dir, com), (mkdir(Dir), ls(Dir, mkdir))).
-rule(delta(mkdir_2_r, 5), mkdir(Dir, com), (mkdir(Dir), ls(_, mkdir))).
-rule(delta(mkdir_2_r, 6), mkdir(Dir, com), (mkdir(Dir), cd(Dir, mkdir))).
-rule(delta(mkdir_2_r, 7), mkdir(Dir, com), (mkdir(Dir), cd(_, mkdir))).
-rule(delta(mkdir_2_r, 8), mkdir(Dir, com), (mkdir(Dir), cp(_, Dir, mkdir))).
-rule(delta(mkdir_2_r, 9), mkdir(Dir, com), (mkdir(Dir), cp(Dir, _, mkdir))).
-rule(delta(mkdir_2_r, 10), mkdir(Dir, com), (mkdir(Dir), cp(_, _, mkdir))).
-rule(delta(mkdir_2_r, 11), mkdir(Dir, com), (mkdir(Dir), mv(_, Dir, mkdir))).
-rule(delta(mkdir_2_r, 12), mkdir(Dir, com), (mkdir(Dir), mv(Dir, _, mkdir))).
-rule(delta(mkdir_2_r, 13), mkdir(Dir, com), (mkdir(Dir), mv(_, _, mkdir))).
-rule(delta(mkdir_2_r, 14), mkdir(Dir, com), (mkdir(Dir), stop)).
+rule(delta(mkdir_2, 1), mkdir(Dir, com), (mkdir(Dir), mkdir(Dir, com))).
+rule(delta(mkdir_2, 2), mkdir(Dir, com), (mkdir(Dir), mkdir(_, com))).
+rule(delta(mkdir_2, 3), mkdir(Dir, com), (mkdir(Dir), com)).
+rule(delta(mkdir_2, 4), mkdir(Dir, com), (mkdir(Dir), ls(Dir, mkdir))).
+rule(delta(mkdir_2, 5), mkdir(Dir, com), (mkdir(Dir), ls(_, mkdir))).
+rule(delta(mkdir_2, 6), mkdir(Dir, com), (mkdir(Dir), cd(Dir, mkdir))).
+rule(delta(mkdir_2, 7), mkdir(Dir, com), (mkdir(Dir), cd(_, mkdir))).
+rule(delta(mkdir_2, 8), mkdir(Dir, com), (mkdir(Dir), cp(_, Dir, mkdir))).
+rule(delta(mkdir_2, 9), mkdir(Dir, com), (mkdir(Dir), cp(Dir, _, mkdir))).
+rule(delta(mkdir_2, 10), mkdir(Dir, com), (mkdir(Dir), cp(_, _, mkdir))).
+rule(delta(mkdir_2, 11), mkdir(Dir, com), (mkdir(Dir), mv(_, Dir, mkdir))).
+rule(delta(mkdir_2, 12), mkdir(Dir, com), (mkdir(Dir), mv(Dir, _, mkdir))).
+rule(delta(mkdir_2, 13), mkdir(Dir, com), (mkdir(Dir), mv(_, _, mkdir))).
+rule(delta(mkdir_2, 14), mkdir(Dir, com), (mkdir(Dir), stop)).
+
+%
+% cd/2
+%
+
+% cd(Dir, mkdir)
+values(cd(Dir, mkdir), [cd_1_r]).
+values(cd_1_r, [delta(cd_1, 1), delta(cd_1, 2), delta(cd_1, 3), delta(cd_1, 4), delta(cd_1, 5), delta(cd_1, 6), delta(cd_1, 7), delta(cd_1, 8), delta(cd_1, 9), delta(cd_1, 10), delta(cd_1, 11), delta(cd_1, 12), delta(cd_1, 13), delta(cd_1, 14)])
+
+rule(delta(cd_1, 1), cd(Dir, mkdir), (cd(Dir), mkdir(Dir, com))).
+rule(delta(cd_1, 2), cd(Dir, mkdir), (cd(Dir), mkdir(_, com))).
+rule(delta(cd_1, 3), cd(Dir, mkdir), (cd(Dir), com)).
+rule(delta(cd_1, 4), cd(Dir, mkdir), (cd(Dir), ls(Dir, cd))).
+rule(delta(cd_1, 5), cd(Dir, mkdir), (cd(Dir), ls(_, cd))).
+rule(delta(cd_1, 6), cd(Dir, mkdir), (cd(Dir), cd(Dir, cd))).
+rule(delta(cd_1, 7), cd(Dir, mkdir), (cd(Dir), cd(_, cd))).
+rule(delta(cd_1, 8), cd(Dir, mkdir), (cd(Dir), cp(_, Dir, cd))).
+rule(delta(cd_1, 9), cd(Dir, mkdir) (cd(Dir), cp(Dir, _, cd))).
+rule(delta(cd_1, 10), cd(Dir, mkdir), (cd(Dir), cp(_, _, cd))).
+rule(delta(cd_1, 11), cd(Dir, mkdir), (cd(Dir), mv(_, Dir, cd))).
+rule(delta(cd_1, 12), cd(Dir, mkdir), (cd(Dir), mv(Dir, _, cd))).
+rule(delta(cd_1, 13), cd(Dir, mkdir), (cd(Dir), mv(_, _, cd))).
+rule(delta(cd_1, 14), cd(Dir, mkdir), (cd(Dir), stop)).
+
+% cd(Dir, ls)
+values(cd(Dir, ls), [cd_2_r]).
+values(cd_2_r, [delta(cd_2, 1), delta(cd_2, 2), delta(cd_2, 3), delta(cd_2, 4), delta(cd_2, 5), delta(cd_2, 6), delta(cd_2, 7), delta(cd_2, 8), delta(cd_2, 9), delta(cd_2, 10), delta(cd_2, 11), delta(cd_2, 12), delta(cd_2, 13), delta(cd_2, 14)])
+
+rule(delta(cd_2, 1), cd(Dir, ls), (cd(Dir), mkdir(Dir, com))).
+rule(delta(cd_2, 2), cd(Dir, ls), (cd(Dir), mkdir(_, com))).
+rule(delta(cd_2, 3), cd(Dir, ls), (cd(Dir), com)).
+rule(delta(cd_2, 4), cd(Dir, ls), (cd(Dir), ls(Dir, cd))).
+rule(delta(cd_2, 5), cd(Dir, ls), (cd(Dir), ls(_, cd))).
+rule(delta(cd_2, 6), cd(Dir, ls), (cd(Dir), cd(Dir, cd))).
+rule(delta(cd_2, 7), cd(Dir, ls), (cd(Dir), cd(_, cd))).
+rule(delta(cd_2, 8), cd(Dir, ls), (cd(Dir), cp(_, Dir, cd))).
+rule(delta(cd_2, 9), cd(Dir, ls) (cd(Dir), cp(Dir, _, cd))).
+rule(delta(cd_2, 10), cd(Dir, ls), (cd(Dir), cp(_, _, cd))).
+rule(delta(cd_2, 11), cd(Dir, ls), (cd(Dir), mv(_, Dir, cd))).
+rule(delta(cd_2, 12), cd(Dir, ls), (cd(Dir), mv(Dir, _, cd))).
+rule(delta(cd_2, 13), cd(Dir, ls), (cd(Dir), mv(_, _, cd))).
+rule(delta(cd_2, 14), cd(Dir, ls), (cd(Dir), stop)).
+
+% cd(Dir, cd)
+values(cd(Dir, cd), [cd_3_r]).
+values(cd_3_r, [delta(cd_3, 1), delta(cd_3, 2), delta(cd_3, 3), delta(cd_3, 4), delta(cd_3, 5), delta(cd_3, 6), delta(cd_3, 7), delta(cd_3, 8), delta(cd_3, 9), delta(cd_3, 10), delta(cd_3, 11), delta(cd_3, 12), delta(cd_3, 13), delta(cd_3, 14)])
+
+rule(delta(cd_3, 1), cd(Dir, cd), (cd(Dir), mkdir(Dir, com))).
+rule(delta(cd_3, 2), cd(Dir, cd), (cd(Dir), mkdir(_, com))).
+rule(delta(cd_3, 3), cd(Dir, cd), (cd(Dir), cd)).
+rule(delta(cd_3, 4), cd(Dir, cd), (cd(Dir), ls(Dir, cd))).
+rule(delta(cd_3, 5), cd(Dir, cd), (cd(Dir), ls(_, cd))).
+rule(delta(cd_3, 6), cd(Dir, cd), (cd(Dir), cd(Dir, cd))).
+rule(delta(cd_3, 7), cd(Dir, cd), (cd(Dir), cd(_, cd))).
+rule(delta(cd_3, 8), cd(Dir, cd), (cd(Dir), cp(_, Dir, cd))).
+rule(delta(cd_3, 9), cd(Dir, cd) (cd(Dir), cp(Dir, _, cd))).
+rule(delta(cd_3, 10), cd(Dir, cd), (cd(Dir), cp(_, _, cd))).
+rule(delta(cd_3, 11), cd(Dir, cd), (cd(Dir), mv(_, Dir, cd))).
+rule(delta(cd_3, 12), cd(Dir, cd), (cd(Dir), mv(Dir, _, cd))).
+rule(delta(cd_3, 13), cd(Dir, cd), (cd(Dir), mv(_, _, cd))).
+rule(delta(cd_3, 14), cd(Dir, cd), (cd(Dir), stop)).
+
+% cd(Dir, cp)
+values(cd(Dir, cp), [cd_4_r]).
+values(cd_4_r, [delta(cd_4, 1), delta(cd_4, 2), delta(cd_4, 3), delta(cd_4, 4), delta(cd_4, 5), delta(cd_4, 6), delta(cd_4, 7), delta(cd_4, 8), delta(cd_4, 9), delta(cd_4, 10), delta(cd_4, 11), delta(cd_4, 12), delta(cd_4, 13), delta(cd_4, 14)])
+
+rule(delta(cd_4, 1), cd(Dir, cp), (cd(Dir), mkdir(Dir, com))).
+rule(delta(cd_4, 2), cd(Dir, cp), (cd(Dir), mkdir(_, com))).
+rule(delta(cd_4, 3), cd(Dir, cp), (cd(Dir), cp)).
+rule(delta(cd_4, 4), cd(Dir, cp), (cd(Dir), ls(Dir, cd))).
+rule(delta(cd_4, 5), cd(Dir, cp), (cd(Dir), ls(_, cd))).
+rule(delta(cd_4, 6), cd(Dir, cp), (cd(Dir), cd(Dir, cd))).
+rule(delta(cd_4, 7), cd(Dir, cp), (cd(Dir), cd(_, cd))).
+rule(delta(cd_4, 8), cd(Dir, cp), (cd(Dir), cp(_, Dir, cd))).
+rule(delta(cd_4, 9), cd(Dir, cp) (cd(Dir), cp(Dir, _, cd))).
+rule(delta(cd_4, 10), cd(Dir, cp), (cd(Dir), cp(_, _, cd))).
+rule(delta(cd_4, 11), cd(Dir, cp), (cd(Dir), mv(_, Dir, cd))).
+rule(delta(cd_4, 12), cd(Dir, cp), (cd(Dir), mv(Dir, _, cd))).
+rule(delta(cd_4, 13), cd(Dir, cp), (cd(Dir), mv(_, _, cd))).
+rule(delta(cd_4, 14), cd(Dir, cp), (cd(Dir), stop)).
+
+% cd(Dir, mv)
+values(cd(Dir, mv), [cd_5_r]).
+values(cd_5_r, [delta(cd_5, 1), delta(cd_5, 2), delta(cd_5, 3), delta(cd_5, 4), delta(cd_5, 5), delta(cd_5, 6), delta(cd_5, 7), delta(cd_5, 8), delta(cd_5, 9), delta(cd_5, 10), delta(cd_5, 11), delta(cd_5, 12), delta(cd_5, 13), delta(cd_5, 14)])
+
+rule(delta(cd_5, 1), cd(Dir, mv), (cd(Dir), mkdir(Dir, com))).
+rule(delta(cd_5, 2), cd(Dir, mv), (cd(Dir), mkdir(_, com))).
+rule(delta(cd_5, 3), cd(Dir, mv), (cd(Dir), mv)).
+rule(delta(cd_5, 4), cd(Dir, mv), (cd(Dir), ls(Dir, cd))).
+rule(delta(cd_5, 5), cd(Dir, mv), (cd(Dir), ls(_, cd))).
+rule(delta(cd_5, 6), cd(Dir, mv), (cd(Dir), cd(Dir, cd))).
+rule(delta(cd_5, 7), cd(Dir, mv), (cd(Dir), cd(_, cd))).
+rule(delta(cd_5, 8), cd(Dir, mv), (cd(Dir), cp(_, Dir, cd))).
+rule(delta(cd_5, 9), cd(Dir, mv) (cd(Dir), cp(Dir, _, cd))).
+rule(delta(cd_5, 10), cd(Dir, mv), (cd(Dir), cp(_, _, cd))).
+rule(delta(cd_5, 11), cd(Dir, mv), (cd(Dir), mv(_, Dir, cd))).
+rule(delta(cd_5, 12), cd(Dir, mv), (cd(Dir), mv(Dir, _, cd))).
+rule(delta(cd_5, 13), cd(Dir, mv), (cd(Dir), mv(_, _, cd))).
+rule(delta(cd_5, 14), cd(Dir, mv), (cd(Dir), stop)).
+
+%
+% ls/2
+%
+
+% ls(Dir, mkdir)
+values(ls(Dir, mkdir), [ls_1_r]).
+values(ls_1_r, [delta(ls_1, 1), delta(ls_1, 2), delta(ls_1, 3), delta(ls_1, 4), delta(ls_1, 5), delta(ls_1, 6), delta(ls_1, 7), delta(ls_1, 8), delta(ls_1, 9), delta(ls_1, 10), delta(ls_1, 11), delta(ls_1, 12), delta(ls_1, 13), delta(ls_1, 14)])
+
+rule(delta(ls_1, 1), ls(Dir, mkdir), (ls(Dir), mkdir(Dir, com))).
+rule(delta(ls_1, 2), ls(Dir, mkdir), (ls(Dir), mkdir(_, com))).
+rule(delta(ls_1, 3), ls(Dir, mkdir), (ls(Dir), com)).
+rule(delta(ls_1, 4), ls(Dir, mkdir), (ls(Dir), ls(Dir, ls))).
+rule(delta(ls_1, 5), ls(Dir, mkdir), (ls(Dir), ls(_, ls))).
+rule(delta(ls_1, 6), ls(Dir, mkdir), (ls(Dir), cd(Dir, ls))).
+rule(delta(ls_1, 7), ls(Dir, mkdir), (ls(Dir), cd(_, ls))).
+rule(delta(ls_1, 8), ls(Dir, mkdir), (ls(Dir), cp(_, Dir, ls))).
+rule(delta(ls_1, 9), ls(Dir, mkdir) (ls(Dir), cp(Dir, _, ls))).
+rule(delta(ls_1, 10), ls(Dir, mkdir), (ls(Dir), cp(_, _, ls))).
+rule(delta(ls_1, 11), ls(Dir, mkdir), (ls(Dir), mv(_, Dir, ls))).
+rule(delta(ls_1, 12), ls(Dir, mkdir), (ls(Dir), mv(Dir, _, ls))).
+rule(delta(ls_1, 13), ls(Dir, mkdir), (ls(Dir), mv(_, _, ls))).
+rule(delta(ls_1, 14), ls(Dir, mkdir), (ls(Dir), stop)).
+
+% ls(Dir, ls)
+values(ls(Dir, ls), [ls_2_r]).
+values(ls_2_r, [delta(ls_2, 1), delta(ls_2, 2), delta(ls_2, 3), delta(ls_2, 4), delta(ls_2, 5), delta(ls_2, 6), delta(ls_2, 7), delta(ls_2, 8), delta(ls_2, 9), delta(ls_2, 10), delta(ls_2, 11), delta(ls_2, 12), delta(ls_2, 13), delta(ls_2, 14)])
+
+rule(delta(ls_2, 1), ls(Dir, ls), (ls(Dir), mkdir(Dir, com))).
+rule(delta(ls_2, 2), ls(Dir, ls), (ls(Dir), mkdir(_, com))).
+rule(delta(ls_2, 3), ls(Dir, ls), (ls(Dir), com)).
+rule(delta(ls_2, 4), ls(Dir, ls), (ls(Dir), ls(Dir, ls))).
+rule(delta(ls_2, 5), ls(Dir, ls), (ls(Dir), ls(_, ls))).
+rule(delta(ls_2, 6), ls(Dir, ls), (ls(Dir), cd(Dir, ls))).
+rule(delta(ls_2, 7), ls(Dir, ls), (ls(Dir), cd(_, ls))).
+rule(delta(ls_2, 8), ls(Dir, ls), (ls(Dir), cp(_, Dir, ls))).
+rule(delta(ls_2, 9), ls(Dir, ls) (ls(Dir), cp(Dir, _, ls))).
+rule(delta(ls_2, 10), ls(Dir, ls), (ls(Dir), cp(_, _, ls))).
+rule(delta(ls_2, 11), ls(Dir, ls), (ls(Dir), mv(_, Dir, ls))).
+rule(delta(ls_2, 12), ls(Dir, ls), (ls(Dir), mv(Dir, _, ls))).
+rule(delta(ls_2, 13), ls(Dir, ls), (ls(Dir), mv(_, _, ls))).
+rule(delta(ls_2, 14), ls(Dir, ls), (ls(Dir), stop)).
+
+% ls(Dir, cd)
+values(ls(Dir, cd), [ls_3_r]).
+values(ls_3_r, [delta(ls_3, 1), delta(ls_3, 2), delta(ls_3, 3), delta(ls_3, 4), delta(ls_3, 5), delta(ls_3, 6), delta(ls_3, 7), delta(ls_3, 8), delta(ls_3, 9), delta(ls_3, 10), delta(ls_3, 11), delta(ls_3, 12), delta(ls_3, 13), delta(ls_3, 14)])
+
+rule(delta(ls_3, 1), ls(Dir, cd), (ls(Dir), mkdir(Dir, com))).
+rule(delta(ls_3, 2), ls(Dir, cd), (ls(Dir), mkdir(_, com))).
+rule(delta(ls_3, 3), ls(Dir, cd), (ls(Dir), com)).
+rule(delta(ls_3, 4), ls(Dir, cd), (ls(Dir), ls(Dir, ls))).
+rule(delta(ls_3, 5), ls(Dir, cd), (ls(Dir), ls(_, ls))).
+rule(delta(ls_3, 6), ls(Dir, cd), (ls(Dir), cd(Dir, ls))).
+rule(delta(ls_3, 7), ls(Dir, cd), (ls(Dir), cd(_, ls))).
+rule(delta(ls_3, 8), ls(Dir, cd), (ls(Dir), cp(_, Dir, ls))).
+rule(delta(ls_3, 9), ls(Dir, cd) (ls(Dir), cp(Dir, _, ls))).
+rule(delta(ls_3, 10), ls(Dir, cd), (ls(Dir), cp(_, _, ls))).
+rule(delta(ls_3, 11), ls(Dir, cd), (ls(Dir), mv(_, Dir, ls))).
+rule(delta(ls_3, 12), ls(Dir, cd), (ls(Dir), mv(Dir, _, ls))).
+rule(delta(ls_3, 13), ls(Dir, cd), (ls(Dir), mv(_, _, ls))).
+rule(delta(ls_3, 14), ls(Dir, cd), (ls(Dir), stop)).
+
+% ls(Dir, cp)
+values(ls(Dir, cp), [ls_4_r]).
+values(ls_4_r, [delta(ls_4, 1), delta(ls_4, 2), delta(ls_4, 3), delta(ls_4, 4), delta(ls_4, 5), delta(ls_4, 6), delta(ls_4, 7), delta(ls_4, 8), delta(ls_4, 9), delta(ls_4, 10), delta(ls_4, 11), delta(ls_4, 12), delta(ls_4, 13), delta(ls_4, 14)])
+
+rule(delta(ls_4, 1), ls(Dir, cp), (ls(Dir), mkdir(Dir, com))).
+rule(delta(ls_4, 2), ls(Dir, cp), (ls(Dir), mkdir(_, com))).
+rule(delta(ls_4, 3), ls(Dir, cp), (ls(Dir), com)).
+rule(delta(ls_4, 4), ls(Dir, cp), (ls(Dir), ls(Dir, ls))).
+rule(delta(ls_4, 5), ls(Dir, cp), (ls(Dir), ls(_, ls))).
+rule(delta(ls_4, 6), ls(Dir, cp), (ls(Dir), cd(Dir, ls))).
+rule(delta(ls_4, 7), ls(Dir, cp), (ls(Dir), cd(_, ls))).
+rule(delta(ls_4, 8), ls(Dir, cp), (ls(Dir), cp(_, Dir, ls))).
+rule(delta(ls_4, 9), ls(Dir, cp) (ls(Dir), cp(Dir, _, ls))).
+rule(delta(ls_4, 10), ls(Dir, cp), (ls(Dir), cp(_, _, ls))).
+rule(delta(ls_4, 11), ls(Dir, cp), (ls(Dir), mv(_, Dir, ls))).
+rule(delta(ls_4, 12), ls(Dir, cp), (ls(Dir), mv(Dir, _, ls))).
+rule(delta(ls_4, 13), ls(Dir, cp), (ls(Dir), mv(_, _, ls))).
+rule(delta(ls_4, 14), ls(Dir, cp), (ls(Dir), stop)).
+
+% ls(Dir, mv)
+values(ls(Dir, mv), [ls_5_r]).
+values(ls_5_r, [delta(ls_5, 1), delta(ls_5, 2), delta(ls_5, 3), delta(ls_5, 4), delta(ls_5, 5), delta(ls_5, 6), delta(ls_5, 7), delta(ls_5, 8), delta(ls_5, 9), delta(ls_5, 10), delta(ls_5, 11), delta(ls_5, 12), delta(ls_5, 13), delta(ls_5, 14)])
+
+rule(delta(ls_5, 1), ls(Dir, mv), (ls(Dir), mkdir(Dir, com))).
+rule(delta(ls_5, 2), ls(Dir, mv), (ls(Dir), mkdir(_, com))).
+rule(delta(ls_5, 3), ls(Dir, mv), (ls(Dir), com)).
+rule(delta(ls_5, 4), ls(Dir, mv), (ls(Dir), ls(Dir, ls))).
+rule(delta(ls_5, 5), ls(Dir, mv), (ls(Dir), ls(_, ls))).
+rule(delta(ls_5, 6), ls(Dir, mv), (ls(Dir), cd(Dir, ls))).
+rule(delta(ls_5, 7), ls(Dir, mv), (ls(Dir), cd(_, ls))).
+rule(delta(ls_5, 8), ls(Dir, mv), (ls(Dir), cp(_, Dir, ls))).
+rule(delta(ls_5, 9), ls(Dir, mv) (ls(Dir), cp(Dir, _, ls))).
+rule(delta(ls_5, 10), ls(Dir, mv), (ls(Dir), cp(_, _, ls))).
+rule(delta(ls_5, 11), ls(Dir, mv), (ls(Dir), mv(_, Dir, ls))).
+rule(delta(ls_5, 12), ls(Dir, mv), (ls(Dir), mv(Dir, _, ls))).
+rule(delta(ls_5, 13), ls(Dir, mv), (ls(Dir), mv(_, _, ls))).
+rule(delta(ls_5, 14), ls(Dir, mv), (ls(Dir), stop)).
+
+%
+% cp/3
+%
+
+%
+% mv/3
+%
 
 %%
 % [MU] Grounding rules
