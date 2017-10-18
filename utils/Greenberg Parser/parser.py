@@ -5,6 +5,7 @@
 # Usage: python parser.py 'scientist-1'
 ######
 import sys
+import re
 
 ###
 # Function parses session data into sequences of commands, aliases, and directories.
@@ -72,6 +73,10 @@ def simplify_commands(commands):
 		if '|' in commands[i]:
 			commands[i] = commands[i].split('|')[0]
 
+		# Remove all flags from command
+		commands[i] = re.sub(r'-\w* ?', '', str(commands[i]))
+		print commands[i]
+
 ###
 # Main
 # ---
@@ -81,17 +86,17 @@ def simplify_commands(commands):
 #     Rewrite the command sequence into full non-aliased form
 #     Simplify the resulting commands by removing pipes and switches
 ###
-data_dir = '../../../Data/UnixData/unix-data/computer-scientists'  # Relative location of dataset
+data_dir = '../../../Data/UnixData/unix-data/computer-scientists/'  # Relative location of dataset
 lohmm_commands = ['mkdir', 'ls', 'cd', 'cp', 'mv']                 # Valid LOHMM commands
 
 # Data Structures
 sessions = []  # List of session data dicts with keys = {'commands', 'aliases', 'directories'}
 
 # Read file data
-with open(data_dir + '/' + sys.argv[1], 'r') as f:	
-	session_streams = f.read().split('\nS')  # Split data into sessions
+with open(data_dir + sys.argv[1], 'r') as f:	
+	session_streams = f.read().split('\nS')  # Split data into session streams
 
-# Split data into strings
+# Split session streams into strings
 for i in range(len(session_streams)):
 	session_streams[i] = session_streams[i].split('\n')[2:]
 
@@ -117,7 +122,7 @@ for i in range(len(sessions)):
 	simplify_commands(sessions[i]['full_commands'])
 
 ####
-for session in sessions:
-	for i in session['full_commands']:
-		print i
-	print '=======\n'
+#for session in sessions:
+#	for i in session['full_commands']:
+#		print i
+#	print '=======\n'
