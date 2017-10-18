@@ -62,39 +62,76 @@ def rewrite_aliases(commands, aliases, lohmm_commands):
 	return full_commands
 
 ###
-# Function removes pipes and switches from a command sequence.
+# Function removes pipes and flags from a command sequence.
 ###
 def simplify_commands(commands):
 
-	# Clean commands to remove pipes, switches, etc
+	# Clean commands to remove pipes, flags, etc
 	for i in range(len(commands)):
 
 		# If there is a pipe in the command take the prefix of the command
 		if '|' in commands[i]:
 			commands[i] = commands[i].split('|')[0]
 
+		# Remove multiple commands
+		if ';' in commands[i]:
+			commands[i] = commands[i].split(';')[0]
+
 		# Remove all flags from command
 		commands[i] = re.sub(r'-\w* ?', '', str(commands[i]))
-		print commands[i]
+
+###
+# Function rewrites all paths to be absolute valued using the current directory data.
+###
+def rewrite_directories(commands, directories):
+	base = []  # Base directory
+
+	# Find the base directory
+	for i in range(len(directories)):
+		
+		if len(base) == 0:
+			base = re.findall(r'/user/\w*/\w*', directories[i])
+
+			if base:
+				base = base[0]
+		
+		# Exit when we find the base dir
+		else:
+			break
+
+	#for i in range(len(commands)):
+		
+	#	if commands[i] != 'com':
+			
+	#		command = commands[i].split(' ')
+
+	#		print command
+
+	
+	print base
+	print '\n=================\n'
 
 ###
 # Main
 # ---
-# For a specified data file...
+# For each data file...
 #     Split the data text into user sessions
 #     Filter out relevant data: commands, aliases, and working directories
 #     Rewrite the command sequence into full non-aliased form
 #     Simplify the resulting commands by removing pipes and switches
+#     Rewrite directories to be absolute path names
 ###
-data_dir = '../../../Data/UnixData/unix-data/computer-scientists/'  # Relative location of dataset
-lohmm_commands = ['mkdir', 'ls', 'cd', 'cp', 'mv']                 # Valid LOHMM commands
+data_dir = '../../../Data/UnixData/unix-data/computer-scientists/scientist-'  # Relative location of dataset
+lohmm_commands = ['mkdir', 'ls', 'cd', 'cp', 'mv']  # Valid LOHMM commands
 
 # Data Structures
+session_streams = []
 sessions = []  # List of session data dicts with keys = {'commands', 'aliases', 'directories'}
 
 # Read file data
-with open(data_dir + sys.argv[1], 'r') as f:	
-	session_streams = f.read().split('\nS')  # Split data into session streams
+for i in range(1, 53):
+	with open(data_dir + str(i), 'r') as f:	
+		session_streams = session_streams + f.read().split('\nS')  # Split data into session streams
 
 # Split session streams into strings
 for i in range(len(session_streams)):
@@ -121,8 +158,5 @@ for i in range(len(sessions)):
 	# Remove pipes and flags from full command sequence
 	simplify_commands(sessions[i]['full_commands'])
 
-####
-#for session in sessions:
-#	for i in session['full_commands']:
-#		print i
-#	print '=======\n'
+	# Make directories absolute
+	rewrite_directories(sessions[i]['full_commands'], sessions[i]['directories'])
