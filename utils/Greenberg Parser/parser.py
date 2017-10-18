@@ -2,7 +2,7 @@
 # Parses and processes data from Greenberg, S. (1988). "Using Unix: collected traces of 168 users" dataset.
 # Format is defined to mimic the experimental setup used in Logical Hidden Markov Models paper by Kersting et al.
 # ---
-# Usage: python parser.py 'scientist-1'
+# Usage: python parser.py
 ######
 import sys
 import re
@@ -44,18 +44,16 @@ def rewrite_aliases(commands, aliases, lohmm_commands):
 
 		if aliases[i] != 'NIL':
 
-			# Check if command is in lohmm_commands
+			# Check if alias is in lohmm_commands
 			if aliases[i].partition(' ')[0] in lohmm_commands:
 				full_commands.append(aliases[i])
-
 			else:
 				full_commands.append('com')
-
 		else:
 
+			# Check if user command is in lohmm_commands
 			if commands[i].partition(' ')[0] in lohmm_commands:
 				full_commands.append(commands[i])
-
 			else:
 				full_commands.append('com')		
 
@@ -92,6 +90,30 @@ def simplify_commands(commands):
 		commands[i] = re.sub(r'-\w* ?', '', str(commands[i]))
 
 ###
+# Function rewrites commands which are not preceeded in 10 timesteps by 'mkdir' to 'com'.
+# First we find the indices where 'mkdir' appears
+# Then for each index we add the next 10 indices to the valid domain
+# All indices not in the valid domain will have the command set to 'com'
+###
+def rewrite_bad_commands(commands):
+	mkdir_indices = []
+	valid_indices = []
+
+	# Find where each 'mkdir' appears
+	for i in range(len(commands)):
+		if commands[i].split(' ')[0] == 'mkdir':
+			mkdir_indices.append(i)
+
+			# Add the current i and the next 10 positions to the valid domain
+			for j in range(0, 11):
+				valid_indices.append(i + j)
+
+	# Rewrite all bad commands to 'com'
+	for i in range(len(commands)):
+		if i not in valid_indices:
+			commands[i] = 'com'
+
+###
 # Function rewrites all paths to be absolute valued using the current directory data.
 ###
 def rewrite_directories(commands, directories):
@@ -113,14 +135,9 @@ def rewrite_directories(commands, directories):
 	#for i in range(len(commands)):
 		
 	#	if commands[i] != 'com':
-			
 	#		command = commands[i].split(' ')
-
 	#		print command
 
-	
-	print base
-	print '\n=================\n'
 
 ###
 # Main
@@ -130,6 +147,7 @@ def rewrite_directories(commands, directories):
 #     Filter out relevant data: commands, aliases, and working directories
 #     Rewrite the command sequence into full non-aliased form
 #     Remove invalid sessions without mkdir appearing at least once
+#     Rewrite invalid commands (those which do not have a mkir within 10-timesteps prior) to com
 #     Simplify the resulting commands by removing pipes and switches
 #     Rewrite directories to be absolute path names
 ###
@@ -175,8 +193,17 @@ for i in range(len(sessions)):
 # Create cleaned user activity stream for each session
 for i in range(len(valid_sessions)):
 
+	# Rewrite commands which did not have a mkdir within 10 time-steps preceeding
+	rewrite_bad_commands(valid_sessions[i]['full_commands'])
+
 	# Remove pipes and flags from full command sequence
 	simplify_commands(valid_sessions[i]['full_commands'])
 
 	# Make directories absolute
-	rewrite_directories(valid_sessions[i]['full_commands'], valid_sessions[i]['directories'])
+	#rewrite_directories(valid_sessions[i]['full_commands'], valid_sessions[i]['directories'])
+
+######
+for session in valid_sessions:
+	for command in session['full_commands']:
+		print command
+	print '==============='
