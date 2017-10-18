@@ -62,6 +62,17 @@ def rewrite_aliases(commands, aliases, lohmm_commands):
 	return full_commands
 
 ###
+# Function checks if a session is valid by checking if at least one command was mkdir
+###
+def is_valid_session(session):
+
+	for command in session:
+		if command.split(' ')[0] == 'mkdir':
+			return True
+
+	return False
+
+###
 # Function removes pipes and flags from a command sequence.
 ###
 def simplify_commands(commands):
@@ -118,6 +129,7 @@ def rewrite_directories(commands, directories):
 #     Split the data text into user sessions
 #     Filter out relevant data: commands, aliases, and working directories
 #     Rewrite the command sequence into full non-aliased form
+#     Remove invalid sessions without mkdir appearing at least once
 #     Simplify the resulting commands by removing pipes and switches
 #     Rewrite directories to be absolute path names
 ###
@@ -127,6 +139,7 @@ lohmm_commands = ['mkdir', 'ls', 'cd', 'cp', 'mv']  # Valid LOHMM commands
 # Data Structures
 session_streams = []
 sessions = []  # List of session data dicts with keys = {'commands', 'aliases', 'directories'}
+valid_sessions = []
 
 # Read file data
 for i in range(1, 53):
@@ -155,8 +168,15 @@ for i in range(len(sessions)):
 	# Generate rewritten command sequence
 	sessions[i]['full_commands'] = rewrite_aliases(sessions[i]['commands'], sessions[i]['aliases'], lohmm_commands)
 
+	# Remove invalid sessions (those without mkdir)
+	if is_valid_session(sessions[i]['full_commands']):
+		valid_sessions.append(sessions[i])
+
+# Create cleaned user activity stream for each session
+for i in range(len(valid_sessions)):
+
 	# Remove pipes and flags from full command sequence
-	simplify_commands(sessions[i]['full_commands'])
+	simplify_commands(valid_sessions[i]['full_commands'])
 
 	# Make directories absolute
-	rewrite_directories(sessions[i]['full_commands'], sessions[i]['directories'])
+	rewrite_directories(valid_sessions[i]['full_commands'], valid_sessions[i]['directories'])
