@@ -1,6 +1,8 @@
 ######
 # Parses and processes data from Greenberg, S. (1988). "Using Unix: collected traces of 168 users" dataset.
 # Format is defined to mimic the experimental setup used in Logical Hidden Markov Models paper by Kersting et al.
+# ---
+# Usage: python parser.py 'scientist-1'
 ######
 import sys
 
@@ -38,7 +40,7 @@ def rewrite_aliases(commands, aliases, lohmm_commands):
 	full_commands = []  # Sequential list of full commands (non-aliased) in file
 
 	for i in range(len(commands)):
-		
+
 		if aliases[i] != 'NIL':
 
 			# Check if command is in lohmm_commands
@@ -81,21 +83,41 @@ def simplify_commands(commands):
 ###
 data_dir = '../../../Data/UnixData/unix-data/computer-scientists'  # Relative location of dataset
 lohmm_commands = ['mkdir', 'ls', 'cd', 'cp', 'mv']                 # Valid LOHMM commands
-data = sys.argv[1]                                                 # Filename to parse
+
+# Data Structures
+sessions = []  # List of session data dicts with keys = {'commands', 'aliases', 'directories'}
 
 # Read file data
-with open(data_dir + '/' + data, 'r') as f:	
-	sessions = f.read().split('\nS')  # Split data into sessions
+with open(data_dir + '/' + sys.argv[1], 'r') as f:	
+	session_streams = f.read().split('\nS')  # Split data into sessions
 
 # Split data into strings
-for i in range(len(sessions)):
-	sessions[i] = sessions[i].split('\n')[2:]
+for i in range(len(session_streams)):
+	session_streams[i] = session_streams[i].split('\n')[2:]
 
-#
-for session in sessions:
-	filter_session_data(session, commands, aliases, directories)
+# Filter our relevant data from activity stream
+for session in session_streams:
+	commands, aliases, directories = filter_session_data(session)
+
+	# Populate dictionary values and add to sessions list
+	session_values = {}
+	session_values['commands'] = commands
+	session_values['aliases'] = aliases
+	session_values['directories'] = directories
+
+	sessions.append(session_values)
+
+# Create cleaned user activity stream for each session
+for i in range(len(sessions)):
+
+	# Generate rewritten command sequence
+	sessions[i]['full_commands'] = rewrite_aliases(sessions[i]['commands'], sessions[i]['aliases'], lohmm_commands)
+
+	# Remove pipes and flags from full command sequence
+	simplify_commands(sessions[i]['full_commands'])
 
 ####
-#for c in full_commands:
-#	if 'mkdir' in c:
-#		print c
+for session in sessions:
+	for i in session['full_commands']:
+		print i
+	print '=======\n'
