@@ -45,26 +45,42 @@ def rewrite_aliases(commands, aliases, lohmm_commands):
 		if aliases[i] != 'NIL':
 
 			# Check if alias is in lohmm_commands
-			if aliases[i].partition(' ')[0] in lohmm_commands:
-				full_commands.append(aliases[i])
+			if aliases[i].split(' ')[0] in lohmm_commands:
+
+				# Throw away bad mkdir commands
+				if aliases[i].split(' ')[0] == 'mkdir' and len(aliases[i].split(' ')) == 1:
+					full_commands.append('com')
+				
+				else:
+					full_commands.append(aliases[i])
+			
 			else:
 				full_commands.append('com')
+
 		else:
 
 			# Check if user command is in lohmm_commands
-			if commands[i].partition(' ')[0] in lohmm_commands:
-				full_commands.append(commands[i])
+			if commands[i].split(' ')[0] in lohmm_commands:
+
+				# Throw away bad mkdir commands
+				if commands[i].split(' ')[0] == 'mkdir' and len(commands[i].split(' ')) == 1:
+					full_commands.append('com')
+
+				else:
+					full_commands.append(commands[i])
+
 			else:
 				full_commands.append('com')		
 
 	return full_commands
 
 ###
-# Function checks if a session is valid by checking if at least one command was mkdir
+# Function checks if a session is valid by checking if at least one command was mkdir with a correct number of args
 ###
 def is_valid_session(session):
 
 	for command in session:
+
 		if command.split(' ')[0] == 'mkdir':
 			return True
 
@@ -113,8 +129,14 @@ def rewrite_bad_commands(commands):
 		if i not in valid_indices:
 			commands[i] = 'com'
 
+	if len(valid_indices) > 0:
+		return True
+
+	return False
+
 ###
 # Function rewrites all paths to be absolute valued using the current directory data.
+# Returns set of all directories found in current command stream.
 ###
 def rewrite_directories(commands, directories):
 	base = []  # Base directory
@@ -128,15 +150,28 @@ def rewrite_directories(commands, directories):
 			if base:
 				base = base[0]
 		
-		# Exit when we find the base dir
+		# Break when we find the base dir
 		else:
 			break
 
-	#for i in range(len(commands)):
+	# Rewrite each command
+	for i in range(len(commands)):
 		
-	#	if commands[i] != 'com':
-	#		command = commands[i].split(' ')
-	#		print command
+		if commands[i] != 'com':
+			command = commands[i].split(' ')
+			
+			# Valid commands will have either 1 or 2 URLs in addition to the command name
+			if len(command) == 1:
+				
+				# An empty dir for 'cd' is a 'cd' to the base dir
+				if command[0] == 'cd':
+					commands[i] = commands[i] + ' ' + base
+
+				# An empty dir for 'ls' is an 'ls' the current dir
+				elif command[0] == 'ls':
+					commands[i] = commands[i] + ' ' + directories[i]
+
+				print commands[i]
 
 
 ###
@@ -200,10 +235,12 @@ for i in range(len(valid_sessions)):
 	simplify_commands(valid_sessions[i]['full_commands'])
 
 	# Make directories absolute
-	#rewrite_directories(valid_sessions[i]['full_commands'], valid_sessions[i]['directories'])
+	rewrite_directories(valid_sessions[i]['full_commands'], valid_sessions[i]['directories'])
+
+	print '=========='
 
 ######
-for session in valid_sessions:
-	for command in session['full_commands']:
-		print command
-	print '==============='
+#for session in valid_sessions:
+#	for command in session['full_commands']:
+#		print command
+#	print '==============='
