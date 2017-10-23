@@ -159,8 +159,12 @@ def rewrite_directories(commands, directories):
 		
 		if commands[i] != 'com':
 			command = commands[i].split(' ')
+
+			# Remove training whitespace artifacts
+			if command[-1] == '':
+				del command[-1]
 			
-			# Valid commands will have either 1 or 2 URLs in addition to the command name
+			# {ls, cd} commands with no path given
 			if len(command) == 1:
 				
 				# An empty dir for 'cd' is a 'cd' to the base dir
@@ -171,7 +175,19 @@ def rewrite_directories(commands, directories):
 				elif command[0] == 'ls':
 					commands[i] = commands[i] + ' ' + directories[i]
 
-				print commands[i]
+			#
+			if len(command) == 2:
+
+				# {ls, cd} commands with a relative path
+				if command[0] == 'cd' or command[0] == 'ls':
+					
+					if not command[1][0] in ['/', '.', '~']:
+						s = str(command)
+						if directories[i] != '/':
+							command[1] = directories[i] + '/' + command[1]
+						else:
+							command[1] = directories[i] + command[1]
+						print s + '-->' + str(command)
 
 
 ###
