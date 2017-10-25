@@ -172,11 +172,11 @@ def rewrite_directories(commands, directories):
 				elif command[0] == 'ls':
 					commands[i] = commands[i] + ' ' + directories[i]
 
-			#
+			# {ls, cd, mkdir} commands
 			if len(command) == 2:
 
-				# {ls, cd} commands with a relative path
-				if command[0] == 'cd' or command[0] == 'ls':
+				# {ls, cd, mkdir} commands with a relative path
+				if command[0] in ['ls', 'cd', 'mkdir']:
 					
 					# Rewrite commands without special paths
 					if not command[1][0] in ['/', '.', '~']:
@@ -211,14 +211,31 @@ def rewrite_directories(commands, directories):
 						# / paths are already absolute, but we will make the /user/ uniform
 						command[1] = re.sub(r'/user\w/', '/user/', command[1])
 
-					else:
-						print '=======BAD======'
-						print command
-						print directories[i]
-						if i < len(directories) - 1:
-							print directories[i + 1]
-						print '=======BAD======'
+					# Handle . paths
+					elif command[1][0] == '.':
 
+						# . path means current dir
+						if len(command[1]) == 1:
+							command[1] = directories[i]
+
+						# .. in path means previous dir
+						elif command[1][1] == '.':
+							split = command[1].split('/')
+							count = command[1].count('..')
+							prev = '/'.join(directories[i].split('/')[:-count])
+							next = '/'.join(split[count:])
+
+							if next:
+								command[1] = prev + '/' + next
+							else:
+								command[1] = prev
+
+						# If the dir is a .abc filename, use the current dir
+						else:
+							command[1] = directories[i] + '/' + command[1]
+
+					commands[i] = ' '.join(command)
+					print commands[i]
 
 ###
 # Main
@@ -282,9 +299,3 @@ for i in range(len(valid_sessions)):
 
 	# Make directories absolute
 	rewrite_directories(valid_sessions[i]['full_commands'], valid_sessions[i]['directories'])
-
-######
-#for session in valid_sessions:
-#	for command in session['full_commands']:
-#		print command
-#	print '==============='
