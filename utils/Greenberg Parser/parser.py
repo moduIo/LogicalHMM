@@ -190,20 +190,7 @@ def rewrite_directories(commands, directories):
 
 					# Handle ~ paths
 					elif command[1][0] == '~':
-
-						# A single ~ path is the base
-						if len(command[1]) == 1:
-							command[1] = base
-
-						else:
-
-							# When dir is ~ABC the dir is user ABC base dir
-							if command[1][1] != '/':
-								command[1] = re.findall(r'/user/\w*/', base)[0] + command[1][1:]
-
-							# When dir is ~/ABC the dir is base/ABC
-							else:
-								command[1] = base + command[1][1:]
+						command[1] = rewrite_tilde(command[1], base)
 
 					# Handle / paths
 					elif command[1][0] == '/':
@@ -213,29 +200,58 @@ def rewrite_directories(commands, directories):
 
 					# Handle . paths
 					elif command[1][0] == '.':
-
-						# . path means current dir
-						if len(command[1]) == 1:
-							command[1] = directories[i]
-
-						# .. in path means previous dir
-						elif command[1][1] == '.':
-							split = command[1].split('/')
-							count = command[1].count('..')
-							prev = '/'.join(directories[i].split('/')[:-count])
-							next = '/'.join(split[count:])
-
-							if next:
-								command[1] = prev + '/' + next
-							else:
-								command[1] = prev
-
-						# If the dir is a .abc filename, use the current dir
-						else:
-							command[1] = directories[i] + '/' + command[1]
+						command[1] = rewrite_dot(command[1], base, directories[i])
 
 					commands[i] = ' '.join(command)
 					print commands[i]
+
+###
+# Rewrites tilde paths
+###
+def rewrite_tilde(command, base):
+
+	# A single ~ path is the base
+	if len(command) == 1:
+		command = base
+
+	else:
+
+		# When dir is ~ABC the dir is user ABC base dir
+		if command[1] != '/':
+			command = re.findall(r'/user/\w*/', base)[0] + command[1:]
+
+		# When dir is ~/ABC the dir is base/ABC
+		else:
+			command = base + command[1:]
+
+	return command
+
+###
+# Rewrites paths starting with .
+###
+def rewrite_dot(command, base, current_dir):
+
+	# . path means current dir
+	if len(command) == 1:
+		command = current_dir
+
+	# .. in path means previous dir
+	elif command[1] == '.':
+		split = command.split('/')
+		count = command.count('..')
+		prev = '/'.join(current_dir.split('/')[:-count])
+		next = '/'.join(split[count:])
+
+		if next:
+			command = prev + '/' + next
+		else:
+			command = prev
+
+	# If the dir is a .abc filename, use the current dir
+	else:
+		command = current_dir + '/' + command
+
+	return command
 
 ###
 # Main
