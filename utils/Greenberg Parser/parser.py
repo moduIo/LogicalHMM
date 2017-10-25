@@ -139,7 +139,7 @@ def rewrite_bad_commands(commands):
 # Returns set of all directories found in current command stream.
 ###
 def rewrite_directories(commands, directories):
-	base = []  # Base directory
+	base = ''  # Base directory
 
 	# Find the base directory
 	for i in range(len(directories)):
@@ -149,10 +149,7 @@ def rewrite_directories(commands, directories):
 
 			if base:
 				base = base[0]
-		
-		# Break when we find the base dir
-		else:
-			break
+				break
 
 	# Rewrite each command
 	for i in range(len(commands)):
@@ -181,13 +178,46 @@ def rewrite_directories(commands, directories):
 				# {ls, cd} commands with a relative path
 				if command[0] == 'cd' or command[0] == 'ls':
 					
+					# Rewrite commands without special paths
 					if not command[1][0] in ['/', '.', '~']:
-						s = str(command)
+						
+						# Simply prepend the current directory to the command
+						# EX: cd next -> cd cur/next
 						if directories[i] != '/':
 							command[1] = directories[i] + '/' + command[1]
 						else:
 							command[1] = directories[i] + command[1]
-						print s + '-->' + str(command)
+
+					# Handle ~ paths
+					elif command[1][0] == '~':
+
+						# A single ~ path is the base
+						if len(command[1]) == 1:
+							command[1] = base
+
+						else:
+
+							# When dir is ~ABC the dir is user ABC base dir
+							if command[1][1] != '/':
+								command[1] = re.findall(r'/user/\w*/', base)[0] + command[1][1:]
+
+							# When dir is ~/ABC the dir is base/ABC
+							else:
+								command[1] = base + command[1][1:]
+
+					# Handle / paths
+					elif command[1][0] == '/':
+
+						# / paths are already absolute, but we will make the /user/ uniform
+						command[1] = re.sub(r'/user\w/', '/user/', command[1])
+
+					else:
+						print '=======BAD======'
+						print command
+						print directories[i]
+						if i < len(directories) - 1:
+							print directories[i + 1]
+						print '=======BAD======'
 
 
 ###
@@ -252,8 +282,6 @@ for i in range(len(valid_sessions)):
 
 	# Make directories absolute
 	rewrite_directories(valid_sessions[i]['full_commands'], valid_sessions[i]['directories'])
-
-	print '=========='
 
 ######
 #for session in valid_sessions:
