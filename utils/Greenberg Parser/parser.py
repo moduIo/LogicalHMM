@@ -392,10 +392,17 @@ for session in valid_sessions:
 	
 	prism_sessions.append(prism_session)
 
-for session in prism_sessions:
-	for command in session:
-		print command
-	print '========================'
+with open('lohmm_examples.dat', 'r') as f:
+
+	for session in prism_sessions:
+		prism_command = 'lohmm(['
+
+		for command in session:
+			prism_command =  prism_command + command + ', '
+
+		prism_command = prism_command[:-2] + ']).'
+
+		f.write(prism_command)
 
 #n = 1
 #for x in sorted(paths):
