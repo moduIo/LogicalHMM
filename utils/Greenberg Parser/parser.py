@@ -221,7 +221,35 @@ def rewrite_directories(commands, directories):
 
 				# {cp, mv} commands with relative paths
 				if command[0] in ['cp', 'mv']:
-					continue
+
+					# Apply rewriting logic
+					for j in range(1, 3):
+
+						# Rewrite commands without special paths
+						if not command[j][0] in ['/', '.', '~']:
+							
+							# Simply prepend the current directory to the command
+							# EX: cd next -> cd cur/next
+							if directories[i] != '/':
+								command[j] = directories[i] + '/' + command[j]
+							else:
+								command[j] = directories[i] + command[j]
+
+						# Handle ~ paths
+						elif command[j][0] == '~':
+							command[j] = rewrite_tilde(command[j], base)
+
+						# Handle / paths
+						elif command[j][0] == '/':
+
+							# / paths are already absolute, but we will make the /user/ uniform
+							command[j] = re.sub(r'/user\w/', '/user/', command[j])
+
+						# Handle . paths
+						elif command[j][0] == '.':
+							command[j] = rewrite_dot(command[j], base, directories[i])
+
+					commands[i] = ' '.join(command)
 
 				# Rewrite ill-formed commands to com
 				else:
