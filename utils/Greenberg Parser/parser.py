@@ -144,6 +144,7 @@ def rewrite_bad_commands(commands):
 ###
 def rewrite_directories(commands, directories):
 	base = ''  # Base directory
+	paths = set()
 
 	# Find the base directory
 	for i in range(len(directories)):
@@ -212,6 +213,11 @@ def rewrite_directories(commands, directories):
 			# Rewrite ill-formed commands to com
 			else:
 				commands[i] = 'com'
+
+			for path in commands[i].split(' ')[1:]:
+				paths.add(path)
+
+	return paths
 
 ###
 # Applies logic based on the first few characters of path
@@ -311,6 +317,8 @@ lohmm_commands = ['mkdir', 'ls', 'cd', 'cp', 'mv']  # Valid LOHMM commands
 session_streams = []
 sessions = []  # List of session data dicts with keys = {'commands', 'aliases', 'directories'}
 valid_sessions = []
+prism_sessions = []
+paths = set()
 
 # Read file data
 for i in range(1, 53):
@@ -353,8 +361,43 @@ for i in range(len(valid_sessions)):
 	simplify_commands(valid_sessions[i]['full_commands'])
 
 	# Make directories absolute
-	rewrite_directories(valid_sessions[i]['full_commands'], valid_sessions[i]['directories'])
+	for path in rewrite_directories(valid_sessions[i]['full_commands'], valid_sessions[i]['directories']):
+		paths.add(path)
 
-for command in valid_sessions:
-	for c in command['full_commands']:
-		print c
+# Rewrite cleaned sessions into PRISM observation format
+for session in valid_sessions:
+	prism_session = []
+
+	for command in session['full_commands']:
+
+		if command == 'com':
+			prism_session.append(command)
+
+		else:
+			split = command.split(' ')
+			prism_command = split[0] + '('
+
+			if len(split) > 1:
+				for i in range(1, len(split)):
+					prism_command = prism_command + split[i] + ', '
+
+				# Remove last ,
+				prism_command = prism_command[:-2] + ')' 
+
+			else:
+				prism_command = prism_command + ')'
+
+			prism_session.append(prism_command)
+
+	
+	prism_sessions.append(prism_session)
+
+for session in prism_sessions:
+	for command in session:
+		print command
+	print '========================'
+
+#n = 1
+#for x in sorted(paths):
+#	print str(n) + ' ' + str(x)
+#	n = n + 1
