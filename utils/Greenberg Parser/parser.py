@@ -392,15 +392,15 @@ for session in valid_sessions:
 	
 	prism_sessions.append(prism_session)
 
-with open('lohmm_examples.dat', 'r') as f:
+with open('lohmm_examples.dat', 'w') as f:
 
 	for session in prism_sessions:
 		prism_command = 'lohmm(['
 
 		for command in session:
-			prism_command =  prism_command + command + ', '
+			prism_command =  prism_command + "'" + command + "'" + ', '
 
-		prism_command = prism_command[:-2] + ']).'
+		prism_command = prism_command[:-2] + ']).\n'
 
 		f.write(prism_command)
 
