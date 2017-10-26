@@ -102,6 +102,10 @@ def simplify_commands(commands):
 		if ';' in commands[i]:
 			commands[i] = commands[i].split(';')[0]
 
+		# Remove & from commands
+		if '&' in commands[i]:
+			commands[i] = commands[i].split('&')[0]
+
 		# Remove all flags from command
 		commands[i] = re.sub(r'-\w* ?', '', str(commands[i]))
 
@@ -157,7 +161,7 @@ def rewrite_directories(commands, directories):
 		if commands[i] != 'com':
 			command = commands[i].split(' ')
 
-			# Remove training whitespace artifacts
+			# Remove whitespace artifacts
 			if command[-1] == '':
 				del command[-1]
 			
@@ -172,8 +176,12 @@ def rewrite_directories(commands, directories):
 				elif command[0] == 'ls':
 					commands[i] = commands[i] + ' ' + directories[i]
 
+				# Rewrite ill-formed commands to com
+				else:
+					commands[i] = 'com'
+
 			# {ls, cd, mkdir} commands
-			if len(command) == 2:
+			elif len(command) == 2:
 
 				# {ls, cd, mkdir} commands with a relative path
 				if command[0] in ['ls', 'cd', 'mkdir']:
@@ -203,7 +211,25 @@ def rewrite_directories(commands, directories):
 						command[1] = rewrite_dot(command[1], base, directories[i])
 
 					commands[i] = ' '.join(command)
-					print commands[i]
+			
+				# Rewrite ill-formed commands to com
+				else:
+					commands[i] = 'com'
+
+			# {cp, mv} commands
+			elif len(command) == 3:
+
+				# {cp, mv} commands with relative paths
+				if command[0] in ['cp', 'mv']:
+					continue
+
+				# Rewrite ill-formed commands to com
+				else:
+					commands[i] = 'com'
+
+			# Rewrite ill-formed commands to com
+			else:
+				commands[i] = 'com'
 
 ###
 # Rewrites tilde paths
