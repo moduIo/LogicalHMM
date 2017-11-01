@@ -423,6 +423,7 @@ with open('lohmm_dir_domain.txt', 'w') as f:
 	predicates = ['mu(mkdir/2, 1)', 'mu(cd/2, 1)', 'mu(ls/2, 1)', 'mu(cp/3, 1)', 'mu(cp/3, 2)', 'mu(mv/3, 1)', 'mu(mv/3, 2)']
 
 	dir_domain = ''
+	i = 0
 	for path in paths:
 		dir_domain = dir_domain + '\'' + str(path) + '\', '
 
