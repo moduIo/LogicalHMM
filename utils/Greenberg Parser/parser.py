@@ -150,10 +150,15 @@ def rewrite_directories(commands, directories):
 	for i in range(len(directories)):
 		
 		if len(base) == 0:
-			base = re.findall(r'/user/\w*/\w*', directories[i])
+			base3 = re.findall(r'/user/\w*/x*', directories[i])
+			base2 = re.findall(r'/user/x*', directories[i])
 
-			if base:
-				base = base[0]
+			if base3:
+				base = base3[0]
+				break
+
+			if base2:
+				base = base2[0]
 				break
 
 	# Rewrite each command
@@ -165,6 +170,8 @@ def rewrite_directories(commands, directories):
 			# Remove whitespace artifacts
 			if command[-1] == '':
 				del command[-1]
+
+			#print 'Original: ' + commands[i]
 			
 			# {ls, cd} commands with no path given
 			if len(command) == 1:
@@ -216,6 +223,12 @@ def rewrite_directories(commands, directories):
 
 			for path in commands[i].split(' ')[1:]:
 				paths.add(path)
+
+			#print 'Command: ' + str(commands[i])
+			#print 'Current Dir: ' + str(directories[i])
+			#if i + 1 < len(commands):
+			#	print 'Next Dir: ' + str(directories[i + 1])
+			#print '=========\n'
 
 	return paths
 
@@ -363,6 +376,7 @@ for i in range(len(valid_sessions)):
 	# Make directories absolute
 	for path in rewrite_directories(valid_sessions[i]['full_commands'], valid_sessions[i]['directories']):
 		paths.add(path)
+		#print '\n\n=========NEXT=========\n\n'
 
 # Rewrite cleaned sessions into PRISM observation format
 for session in valid_sessions:
@@ -392,6 +406,7 @@ for session in valid_sessions:
 	
 	prism_sessions.append(prism_session)
 
+# Write LOHMM examples for PRISM learning
 with open('lohmm_examples.dat', 'w') as f:
 
 	for session in prism_sessions:
@@ -404,6 +419,19 @@ with open('lohmm_examples.dat', 'w') as f:
 
 		f.write(prism_command)
 
+with open('lohmm_dir_domain.txt', 'w') as f:
+	predicates = ['mu(mkdir/2, 1)', 'mu(cd/2, 1)', 'mu(ls/2, 1)', 'mu(cp/3, 1)', 'mu(cp/3, 2)', 'mu(mv/3, 1)', 'mu(mv/3, 2)']
+
+	dir_domain = ''
+	for path in paths:
+		dir_domain = dir_domain + '\'' + str(path) + '\', '
+
+	for predicate in predicates:
+		f.write('values(' + predicate + ', [' + dir_domain[0:-2] + ']).\n\n')
+
+
+
+# Debugging output: write all paths
 #n = 1
 #for x in sorted(paths):
 #	print str(n) + ' ' + str(x)
