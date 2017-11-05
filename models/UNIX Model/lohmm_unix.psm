@@ -265,7 +265,7 @@ values(cd_3_r, [delta(cd_3, 1), delta(cd_3, 2), delta(cd_3, 3), delta(cd_3, 4), 
 
 rule(delta(cd_3, 1), cd(Dir, cd), (cd(Dir), mkdir(Dir, com))).
 rule(delta(cd_3, 2), cd(Dir, cd), (cd(Dir), mkdir(_, com))).
-rule(delta(cd_3, 3), cd(Dir, cd), (cd(Dir), cd)).
+rule(delta(cd_3, 3), cd(Dir, cd), (cd(Dir), com)).
 rule(delta(cd_3, 4), cd(Dir, cd), (cd(Dir), ls(Dir, cd))).
 rule(delta(cd_3, 5), cd(Dir, cd), (cd(Dir), ls(_, cd))).
 rule(delta(cd_3, 6), cd(Dir, cd), (cd(Dir), cd(Dir, cd))).
@@ -284,7 +284,7 @@ values(cd_4_r, [delta(cd_4, 1), delta(cd_4, 2), delta(cd_4, 3), delta(cd_4, 4), 
 
 rule(delta(cd_4, 1), cd(Dir, cp), (cd(Dir), mkdir(Dir, com))).
 rule(delta(cd_4, 2), cd(Dir, cp), (cd(Dir), mkdir(_, com))).
-rule(delta(cd_4, 3), cd(Dir, cp), (cd(Dir), cp)).
+rule(delta(cd_4, 3), cd(Dir, cp), (cd(Dir), com)).
 rule(delta(cd_4, 4), cd(Dir, cp), (cd(Dir), ls(Dir, cd))).
 rule(delta(cd_4, 5), cd(Dir, cp), (cd(Dir), ls(_, cd))).
 rule(delta(cd_4, 6), cd(Dir, cp), (cd(Dir), cd(Dir, cd))).
@@ -303,7 +303,7 @@ values(cd_5_r, [delta(cd_5, 1), delta(cd_5, 2), delta(cd_5, 3), delta(cd_5, 4), 
 
 rule(delta(cd_5, 1), cd(Dir, mv), (cd(Dir), mkdir(Dir, com))).
 rule(delta(cd_5, 2), cd(Dir, mv), (cd(Dir), mkdir(_, com))).
-rule(delta(cd_5, 3), cd(Dir, mv), (cd(Dir), mv)).
+rule(delta(cd_5, 3), cd(Dir, mv), (cd(Dir), com)).
 rule(delta(cd_5, 4), cd(Dir, mv), (cd(Dir), ls(Dir, cd))).
 rule(delta(cd_5, 5), cd(Dir, mv), (cd(Dir), ls(_, cd))).
 rule(delta(cd_5, 6), cd(Dir, mv), (cd(Dir), cd(Dir, cd))).
