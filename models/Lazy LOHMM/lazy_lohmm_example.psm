@@ -63,8 +63,13 @@ lohmm(State, [State|States], [Obs|Obss]) :-
     -> Obss = [], States = [], !
     ;  generateID(Obs, ID1),  
        generateID(Next, ID2),  
+       print('Binding Obs...'), nl,
        bind(Obs, ID1),  
-       bind(Next, ID2),
+       print('     Obs := '), print(Obs), nl,
+       print('Binding Next...'), nl,
+       bind(Next, ID2), 
+       print('     Next := '), print(Next), nl,
+       print('---------'), nl,
        lohmm(Next, States, Obss)
     ).
 
@@ -84,8 +89,9 @@ lohmm(State, [State|States], [Obs|Obss]) :-
 %%
 trans(State, Obs, Next) :-
     msw(State, RuleID),         
-    msw(RuleID, Rule),         
-    rule(Rule, State, (Obs, Next)).  
+    msw(RuleID, Rule),
+    rule(Rule, State, (Obs, Next)),
+    print('Rule: '), print(Rule), print(' State: '), print(State), print(' Obs: '), print(Obs), print(' Next: '), print(Next), nl.  
 
 %%
 % [bind/2] bind(Term, ID)
@@ -97,7 +103,8 @@ trans(State, Obs, Next) :-
 %%
 bind(Term, ID) :- 
     functor(Term, F, N),         
-    Term =.. [F|Args],             
+    Term =.. [F|Args],
+    print('     Functor: '), print(F), print('/'), print(N), nl,             
     allbind(F/N, 1, Args, ID). 
 
 %%
@@ -150,7 +157,7 @@ generateID(Term, ID) :-
 % ---
 % True if transistion T has multiple states resulting from a subsumption split.
 %%
-subsumption(emacs).
+subsumption(emacs/2).
 
 %%------------------------------------
 %% Declarations section
