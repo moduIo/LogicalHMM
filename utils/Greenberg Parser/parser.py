@@ -170,8 +170,6 @@ def rewrite_directories(commands, directories):
 			# Remove whitespace artifacts
 			if command[-1] == '':
 				del command[-1]
-
-			#print 'Original: ' + commands[i]
 			
 			# {ls, cd} commands with no path given
 			if len(command) == 1:
@@ -224,12 +222,6 @@ def rewrite_directories(commands, directories):
 			for path in commands[i].split(' ')[1:]:
 				paths.add(path)
 
-			#print 'Command: ' + str(commands[i])
-			#print 'Current Dir: ' + str(directories[i])
-			#if i + 1 < len(commands):
-			#	print 'Next Dir: ' + str(directories[i + 1])
-			#print '=========\n'
-
 	return paths
 
 ###
@@ -260,6 +252,9 @@ def apply_path_cases(command, directory, base):
 	# Handle . paths
 	elif command[0] == '.':
 		command = rewrite_dot(command, base, directory)
+
+	# Remove ' from strings
+	command = re.sub(r"'", '', command)
 
 	return command
 
@@ -376,7 +371,6 @@ for i in range(len(valid_sessions)):
 	# Make directories absolute
 	for path in rewrite_directories(valid_sessions[i]['full_commands'], valid_sessions[i]['directories']):
 		paths.add(path)
-		#print '\n\n=========NEXT=========\n\n'
 
 # Rewrite cleaned sessions into PRISM observation format
 for session in valid_sessions:
@@ -393,7 +387,10 @@ for session in valid_sessions:
 
 			if len(split) > 1:
 				for i in range(1, len(split)):
-					prism_command = prism_command + split[i] + ', '
+					if split[i] == '':
+						continue
+
+					prism_command = prism_command + "'" + split[i] + "'" + ', '
 
 				# Remove last ,
 				prism_command = prism_command[:-2] + ')' 
@@ -413,7 +410,7 @@ with open('lohmm_examples.dat', 'w') as f:
 		prism_command = 'lohmm(['
 
 		for command in session:
-			prism_command =  prism_command + "'" + command + "'" + ', '
+			prism_command =  prism_command + command + ', '
 
 		prism_command = prism_command[:-2] + ']).\n'
 
@@ -429,11 +426,3 @@ with open('lohmm_dir_domain.txt', 'w') as f:
 
 	for predicate in predicates:
 		f.write('values(' + predicate + ', [' + dir_domain[0:-2] + ']).\n\n')
-
-
-
-# Debugging output: write all paths
-#n = 1
-#for x in sorted(paths):
-#	print str(n) + ' ' + str(x)
-#	n = n + 1
