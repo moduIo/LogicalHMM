@@ -61,10 +61,10 @@ lohmm(State, [State|States], [Obs|Obss]) :-
     trans(State, Obs, Next),
     (  Next = stop
     -> Obss = [], States = [], !
-    ;  generateID(Obs, ID1),  
-       generateID(Next, ID2),  
-       bind(Obs, ID1),  
-       bind(Next, ID2),
+    ;  generateID(Next, ID1),  
+       generateID(Obs, ID2),  
+       bind(Next, ID1),  
+       bind(Obs, ID2),
        lohmm(Next, States, Obss)
     ).
 

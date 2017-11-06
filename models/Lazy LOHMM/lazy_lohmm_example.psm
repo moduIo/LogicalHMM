@@ -43,14 +43,22 @@ lohmm(Obs) :- lohmm(_, Obs).
 %%
 lohmm(States, Obs) :-
     set_params,
-    lohmm(start, [start | Lazy_States], [_ | Lazy_Obs]),
+    lohmm(start, [start | Lazy_States], [_ | Lazy_Obs]), !,
+    
+    %%%
     nl, print('START LAZY OBS GROUND...'), nl,
     print('ORIGINAL OBS:'), nl,
     printall(Lazy_Obs), print('--------'), nl,
+    %%%
+
     lazy_ground(Lazy_Obs, Obs),
+    
+    %%%
     nl, print('START LAZY STATE GROUND...'), nl,
     print('ORIGINAL STATES:'), nl,
     printall(Lazy_States), print('--------'), nl,
+    %%%
+
     lazy_ground(Lazy_States, States), !.
 
 %
@@ -75,15 +83,27 @@ lohmm(State, [State|States], [Obs|Obss]) :-
     trans(State, Obs, Next),
     (  Next = stop
     -> Obss = [], States = [], !
-    ;  generateID(Obs, ID1),  
-       generateID(Next, ID2),  
-       print('Binding Obs...'), nl,
-       bind(Obs, ID1),  
-       print('     Obs := '), print(Obs), nl,
+    ;  generateID(Next, ID1),  
+       generateID(Obs, ID2),
+
+       %%%
        print('Binding Next...'), nl,
-       bind(Next, ID2), 
+       %%%
+
+       bind(Next, ID1),
+
+       %%%
        print('     Next := '), print(Next), nl,
+       print('Binding Obs...'), nl,
+       %%%
+
+       bind(Obs, ID2), 
+
+       %%%
+       print('     Obs := '), print(Obs), nl,
        print('---------'), nl,
+       %%%
+
        lohmm(Next, States, Obss)
     ).
 
@@ -105,10 +125,13 @@ trans(State, Obs, Next) :-
     msw(State, RuleID),         
     msw(RuleID, Rule),
     rule(Rule, State, (Obs, Next)),
+
+    %%%
     print('Rule: '), print(Rule), nl, 
     print('     State: '), print(State), nl, 
     print('     Obs: '), print(Obs), nl, 
-    print('     Next: '), print(Next), nl.  
+    print('     Next: '), print(Next), nl.
+    %%%
 
 %%
 % [bind/2] bind(Term, ID)
@@ -121,7 +144,11 @@ trans(State, Obs, Next) :-
 bind(Term, ID) :- 
     functor(Term, F, N),         
     Term =.. [F|Args],
+
+    %%%
     print('     Functor: '), print(F), print('/'), print(N), nl,
+    %%%
+
     (  subsumption(F/N, Pos)
     -> print('MU: '), lazy_bind(F/N, 1, Pos, Args, ID)
     ;  print('LAZY: '), lazy_bind(F/N, 1, -1, Args, ID)
@@ -177,7 +204,6 @@ lazy_ground([Lazy_Obs | Lazy_Obss], [Obs | Obss]) :-
 evaluate_all([], [], _) :- !.
 
 evaluate_all([Arg | Args], [Obs | Obss], I) :-
-    print(Arg), nl,
     (  Arg = lazy(Mu)
     -> msw(Mu, Obs)
     ;  Obs = Arg
