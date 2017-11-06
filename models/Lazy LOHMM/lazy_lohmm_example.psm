@@ -42,9 +42,22 @@ lohmm(Obs) :- lohmm(_, Obs).
 % Returns the list of states and observations.
 %%
 lohmm(States, Obs) :-
-    set_params, lohmm(start, [start | States], [_ | Obs]), !.                                 
-    %lohmm(start, [start | States], [_ | Lazy_Obs]), 
-    %lazy_ground(Lazy_Obs, Obs), !.
+    set_params,
+    lohmm(start, [start | Lazy_States], [_ | Lazy_Obs]),
+    nl, print('START LAZY OBS GROUND...'), nl,
+    print('ORIGINAL OBS:'), nl,
+    printall(Lazy_Obs), print('--------'), nl,
+    lazy_ground(Lazy_Obs, Obs),
+    nl, print('START LAZY STATE GROUND...'), nl,
+    print('ORIGINAL STATES:'), nl,
+    printall(Lazy_States), print('--------'), nl,
+    lazy_ground(Lazy_States, States), !.
+
+%
+% DELETE
+%
+printall([]) :- !.
+printall([H | Rest]) :- print(H), nl, printall(Rest).
 
 %%
 % [lohmm/3] lohmm(Current, States, Observations)
@@ -126,8 +139,8 @@ bind(Term, ID) :-
 % Grounds unground variables in Term.
 %
 % Loop over Arg in Args:
-%     if I == Pos:
-%         if Arg is not ground:
+%     if Arg is not ground:
+%         if I == Pos:
 %             ground Arg via MU
 %         else:
 %             ground Arg via lazy pointer
@@ -140,9 +153,9 @@ lazy_bind(T, I, Pos, [Arg|Args], ID) :-
     (  var(Arg)
     -> (  I = Pos        
        -> msw(mu(T, I), Arg) 
-       ;  Arg = mu(T, I)
+       ;  Arg = lazy(mu(T, I))
        )
-    ; print('ALREADY GROUND'), true
+    ; true
     ),                         
     I1 is I + 1,
     lazy_bind(T, I1, Pos, Args, ID).
@@ -153,9 +166,24 @@ lazy_bind(T, I, Pos, [Arg|Args], ID) :-
 lazy_ground([], []) :- !.
 
 lazy_ground([Lazy_Obs | Lazy_Obss], [Obs | Obss]) :-
-    functor(Lazy_Obs, F, N),
-    Term =.. [F|Args],
+    Lazy_Obs =.. [F | Args],
+    evaluate_all(Args, Ground, 1),
+    Obs =.. [F | Ground],
+    lazy_ground(Lazy_Obss, Obss).
 
+%%
+%
+%%
+evaluate_all([], [], _) :- !.
+
+evaluate_all([Arg | Args], [Obs | Obss], I) :-
+    print(Arg), nl,
+    (  Arg = lazy(Mu)
+    -> msw(Mu, Obs)
+    ;  Obs = Arg
+    ),
+    I1 is I + 1,
+    evaluate_all(Args, Obss, I1).
 
 %%
 % [generateID/2] generateID(Term, ID)
