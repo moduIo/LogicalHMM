@@ -91,7 +91,10 @@ trans(State, Obs, Next) :-
     msw(State, RuleID),         
     msw(RuleID, Rule),
     rule(Rule, State, (Obs, Next)),
-    print('Rule: '), print(Rule), print(' State: '), print(State), print(' Obs: '), print(Obs), print(' Next: '), print(Next), nl.  
+    print('Rule: '), print(Rule), nl, 
+    print('     State: '), print(State), nl, 
+    print('     Obs: '), print(Obs), nl, 
+    print('     Next: '), print(Next), nl.  
 
 %%
 % [bind/2] bind(Term, ID)
@@ -106,8 +109,8 @@ bind(Term, ID) :-
     Term =.. [F|Args],
     print('     Functor: '), print(F), print('/'), print(N), nl,
     (  subsumption(F/N, Pos)
-    -> print('MU BIND'), nl, allbind(F/N, 1, Pos, Args, ID)
-    ;  print('LAZYBIND'), nl, lazybind(F/N, 1, Args, ID)
+    -> print('MU: '), allbind(F/N, 1, Pos, Args, ID)
+    ;  print('LAZY: '), lazybind(F/N, 1, Args, ID)
     ). 
 
 %%
@@ -132,9 +135,9 @@ allbind(T, I, Pos, [Arg|Args], ID) :-
     (  I = Pos 
     -> (  var(Arg)            
        -> msw(mu(T, I), Arg) 
-       ;  true
+       ;  print('ALREADY GROUND'), true
        )
-    ; Arg = delayed
+    ; Arg = (T, I)
     ),                         
     I1 is I + 1,
     allbind(T, I1, Pos, Args, ID).
@@ -155,8 +158,8 @@ lazybind(_, _, [], _) :- !.
 
 lazybind(T, I, [Arg|Args], ID) :-
     (  var(Arg)            
-    -> Arg = delayed
-    ;  true
+    -> Arg = (T, I)
+    ;  print('ALREADY GROUND'), true
     ),                         
     I1 is I + 1,
     lazybind(T, I1, Args, ID).
