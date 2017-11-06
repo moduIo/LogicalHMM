@@ -43,7 +43,7 @@ lohmm(Obs) :- lohmm(_, Obs).
 %%
 lohmm(States, Obs) :-
     set_params,                                 
-    lohmm(start, [start | States], [_ | Obs]). 
+    lohmm(start, [start | States], [_ | Obs]), !. 
 
 %%
 % [lohmm/3] lohmm(Current, States, Observations)
@@ -104,11 +104,43 @@ trans(State, Obs, Next) :-
 bind(Term, ID) :- 
     functor(Term, F, N),         
     Term =.. [F|Args],
-    print('     Functor: '), print(F), print('/'), print(N), nl,             
-    allbind(F/N, 1, Args, ID). 
+    print('     Functor: '), print(F), print('/'), print(N), nl,
+    (  subsumption(F/N, Pos)
+    -> print('MU BIND'), nl, allbind(F/N, 1, Pos, Args, ID)
+    ;  print('LAZYBIND'), nl, lazybind(F/N, 1, Args, ID)
+    ). 
 
 %%
-% [allbind/4] allbind(Term, I, Args, ID)
+% [allbind/4] allbind(Term, I, Pos, Args, ID)
+% ---
+% Term := term represented by <term_name>/<arity>, used to index msw
+% I := current iteration which corresponds to the current arg position
+% Pos := position to bind
+% Args := list of arguments in term
+% ID := generated ID of term
+% ---
+% Loop over Arg in Args:
+%     if I == Pos:
+%         if Arg is not ground:
+%             ground Arg via MU
+%
+% The msw for MU is indexed via mu(<term_name>/<arity>, <arg_position>)
+%%
+allbind(_, _, _, [], _) :- !. 
+
+allbind(T, I, Pos, [Arg|Args], ID) :-
+    (  I = Pos 
+    -> (  var(Arg)            
+       -> msw(mu(T, I), Arg) 
+       ;  true
+       )
+    ; Arg = delayed
+    ),                         
+    I1 is I + 1,
+    allbind(T, I1, Pos, Args, ID).
+
+%%
+% [lazybind/4] lazybind(Term, I, Args, ID)
 % ---
 % Term := term represented by <term_name>/<arity>, used to index msw
 % I := current iteration which corresponds to the current arg position
@@ -117,19 +149,17 @@ bind(Term, ID) :-
 % ---
 % Loop over Arg in Args:
 %     if Arg is not ground:
-%         ground Arg via MU
-%
-% The msw for MU is indexed via mu(<term_name>/<arity>, <arg_position>)
+%         ground Arg with delayed
 %%
-allbind(_, _, [], _) :- !. 
+lazybind(_, _, [], _) :- !. 
 
-allbind(T, I, [Arg|Args], ID) :-
+lazybind(T, I, [Arg|Args], ID) :-
     (  var(Arg)            
-    -> msw(mu(T, I), Arg) 
+    -> Arg = delayed
     ;  true
     ),                         
     I1 is I + 1,
-    allbind(T, I1, Args, ID).
+    lazybind(T, I1, Args, ID).
 
 %%
 % [generateID/2] generateID(Term, ID)
@@ -153,11 +183,15 @@ generateID(Term, ID) :-
     ).
 
 %%
-% [subsumption/1] subsumption(T)
+% [subsumption/1] subsumption(Transition, Position)
 % ---
-% True if transistion T has multiple states resulting from a subsumption split.
+% Transition := name/arity of the transition
+% Position := position of the logical variable which leads to subsumption
+% ---
+% True if Transition has multiple states resulting from a subsumption split
+% where the subsumption occurs by grounding the variable in Position.
 %%
-subsumption(emacs/2).
+subsumption(emacs/2, 2).
 
 %%------------------------------------
 %% Declarations section
