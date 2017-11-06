@@ -42,8 +42,9 @@ lohmm(Obs) :- lohmm(_, Obs).
 % Returns the list of states and observations.
 %%
 lohmm(States, Obs) :-
-    set_params,                                 
-    lohmm(start, [start | States], [_ | Obs]), !. 
+    set_params, lohmm(start, [start | States], [_ | Obs]), !.                                 
+    %lohmm(start, [start | States], [_ | Lazy_Obs]), 
+    %lazy_ground(Lazy_Obs, Obs), !.
 
 %%
 % [lohmm/3] lohmm(Current, States, Observations)
@@ -102,19 +103,19 @@ trans(State, Obs, Next) :-
 % Term := patially ground term
 % ID := ID generated for the term
 % ---
-% Accesses Term arity and arguments and calls allbind/3 to ground the term.
+% Accesses Term arity and arguments and calls lazy_bind/5 to ground the term.
 %%
 bind(Term, ID) :- 
     functor(Term, F, N),         
     Term =.. [F|Args],
     print('     Functor: '), print(F), print('/'), print(N), nl,
     (  subsumption(F/N, Pos)
-    -> print('MU: '), allbind(F/N, 1, Pos, Args, ID)
-    ;  print('LAZY: '), lazybind(F/N, 1, Args, ID)
+    -> print('MU: '), lazy_bind(F/N, 1, Pos, Args, ID)
+    ;  print('LAZY: '), lazy_bind(F/N, 1, -1, Args, ID)
     ). 
 
 %%
-% [allbind/4] allbind(Term, I, Pos, Args, ID)
+% [lazy_bind/5] lazy_bind(Term, I, Pos, Args, ID)
 % ---
 % Term := term represented by <term_name>/<arity>, used to index msw
 % I := current iteration which corresponds to the current arg position
@@ -122,47 +123,39 @@ bind(Term, ID) :-
 % Args := list of arguments in term
 % ID := generated ID of term
 % ---
+% Grounds unground variables in Term.
+%
 % Loop over Arg in Args:
 %     if I == Pos:
 %         if Arg is not ground:
 %             ground Arg via MU
+%         else:
+%             ground Arg via lazy pointer
 %
 % The msw for MU is indexed via mu(<term_name>/<arity>, <arg_position>)
 %%
-allbind(_, _, _, [], _) :- !. 
+lazy_bind(_, _, _, [], _) :- !. 
 
-allbind(T, I, Pos, [Arg|Args], ID) :-
-    (  I = Pos 
-    -> (  var(Arg)            
+lazy_bind(T, I, Pos, [Arg|Args], ID) :-
+    (  var(Arg)
+    -> (  I = Pos        
        -> msw(mu(T, I), Arg) 
-       ;  print('ALREADY GROUND'), true
+       ;  Arg = mu(T, I)
        )
-    ; Arg = (T, I)
+    ; print('ALREADY GROUND'), true
     ),                         
     I1 is I + 1,
-    allbind(T, I1, Pos, Args, ID).
+    lazy_bind(T, I1, Pos, Args, ID).
 
 %%
-% [lazybind/4] lazybind(Term, I, Args, ID)
-% ---
-% Term := term represented by <term_name>/<arity>, used to index msw
-% I := current iteration which corresponds to the current arg position
-% Args := list of arguments in term
-% ID := generated ID of term
-% ---
-% Loop over Arg in Args:
-%     if Arg is not ground:
-%         ground Arg with delayed
+%
 %%
-lazybind(_, _, [], _) :- !. 
+lazy_ground([], []) :- !.
 
-lazybind(T, I, [Arg|Args], ID) :-
-    (  var(Arg)            
-    -> Arg = (T, I)
-    ;  print('ALREADY GROUND'), true
-    ),                         
-    I1 is I + 1,
-    lazybind(T, I1, Args, ID).
+lazy_ground([Lazy_Obs | Lazy_Obss], [Obs | Obss]) :-
+    functor(Lazy_Obs, F, N),
+    Term =.. [F|Args],
+
 
 %%
 % [generateID/2] generateID(Term, ID)
