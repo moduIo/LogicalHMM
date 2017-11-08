@@ -43,7 +43,7 @@ lohmm(Obs) :- lohmm(_, Obs).
 %%
 lohmm(States, Obs) :-
     set_params,
-    lohmm(start, [start | Lazy_States], [_ | Lazy_Obs]),
+    lohmm(start, [start | Lazy_States], [_ | Obs]),
     
     %%%
     nl, print('START LAZY OBS GROUND...'), nl,
@@ -51,7 +51,7 @@ lohmm(States, Obs) :-
     %printall(Lazy_Obs), print('--------'), nl,
     %%%
 
-    lazy_ground(Lazy_Obs, Obs),
+    %lazy_ground(Lazy_Obs, Obs),
     
     %%%
     nl, print('START LAZY STATE GROUND...'), nl,
@@ -59,7 +59,8 @@ lohmm(States, Obs) :-
     %printall(Lazy_States), print('--------'), nl,
     %%%
 
-    lazy_ground(Lazy_States, States).
+    %lazy_ground(Lazy_States, States).
+    States = Lazy_States.
 
 %
 % DELETE
@@ -80,11 +81,11 @@ printall([H | Rest]) :- print(H), nl, printall(Rest).
 %     loop until the current state is stop.
 %%
 lohmm(State, [State|States], [Obs|Obss]) :- 
-    trans(State, Obs, Next),
+    trans(State, NGObs, Next),
     (  Next = stop
-    -> Obss = [], States = [], !
+    -> generateID(NGObs, ID2), bind_obs(NGObs, Obs, ID2), Obss = [], States = [], !
     ;  generateID(Next, ID1),  
-       generateID(Obs, ID2),
+       generateID(NGObs, ID2),
 
        %%%
        print('Binding Next...'), nl,
@@ -97,7 +98,7 @@ lohmm(State, [State|States], [Obs|Obss]) :-
        print('Binding Obs...'), nl,
        %%%
 
-       bind(Obs, ID2),
+       bind_obs(NGObs, Obs, ID2),
 
        %%%
        print(' Obs := '), print(Obs), nl,
@@ -148,6 +149,16 @@ bind(Term, ID) :-
     -> print('[MU]  '), lazy_bind(F/N, 1, Pos, Args, ID)
     ;  print('[LAZY]'), lazy_bind(F/N, 1, -1, Args, ID)
     ).
+
+%
+%
+%
+bind_obs(Term, New, ID) :-
+    functor(Term, F, N),  
+    Term =.. [F|Args],             
+    evaluate_all(Args, Ground, 1),
+    print('THIS IS GROUND: '), print(Ground), nl,
+    New =.. [F|Ground]. 
 
 %%
 % [lazy_bind/5] lazy_bind(Term, I, Pos, Args, ID)

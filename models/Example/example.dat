@@ -1,0 +1,2 @@
+lohmm([emacs(f2),ls,emacs(f2),latex(f2),emacs(f2),ls,emacs(f2),ls,emacs(f1),ls]).
+lohmm([ls,emacs(f2),ls,emacs(f2),ls]).
