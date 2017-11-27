@@ -1,3 +1,7 @@
+%
+% DOESNT GROUND STATES, but WORKS
+%
+
 %%%%%%
 % Model of a Logical Hidden Markov Model (LOHMM) extended with the Lazy Inference Semantics
 % LM = (SIGMA, MU, DELTA, UPSILON)
@@ -41,26 +45,16 @@ lohmm(Obs) :- lohmm(_, Obs).
 % ---
 % Returns the list of states and observations.
 %%
-lohmm(States, Obs) :-
+lohmm(Lazy_States, Obs) :-
     set_params,
-    lohmm(start, [start | Lazy_States], [_ | Obs]),
-    
-    %%%
-    nl, print('START LAZY OBS GROUND...'), nl,
-    %print('ORIGINAL OBS:'), nl,
-    %printall(Lazy_Obs), print('--------'), nl,
-    %%%
+    lohmm(start, [start | Lazy_States], [_ | Obs]).
 
-    %lazy_ground(Lazy_Obs, Obs),
-    
-    %%%
-    nl, print('START LAZY STATE GROUND...'), nl,
-    %print('ORIGINAL STATES:'), nl,
-    %printall(Lazy_States), print('--------'), nl,
-    %%%
-
-    %lazy_ground(Lazy_States, States).
-    States = Lazy_States.
+%
+% Grounds the LOHMM
+%
+ground_lohmm(States, Obs) :-
+    lohmm(Lazy_States, Obs),
+    lazy_ground(Lazy_States, States).
 
 %
 % DELETE
@@ -157,8 +151,7 @@ bind_obs(Term, New, ID) :-
     functor(Term, F, N),  
     Term =.. [F|Args],             
     evaluate_all(Args, Ground, 1),
-    print('THIS IS GROUND: '), print(Ground), nl,
-    New =.. [F|Ground]. 
+    New =.. [F|Ground].
 
 %%
 % [lazy_bind/5] lazy_bind(Term, I, Pos, Args, ID)

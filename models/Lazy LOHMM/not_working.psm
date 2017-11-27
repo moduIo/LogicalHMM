@@ -41,7 +41,7 @@ lohmm(Obs) :- lohmm(_, Obs).
 % ---
 % Returns the list of states and observations.
 %%
-lohmm(States, Obs) :-
+lohmm(Lazy_States, Obs) :-
     set_params,
     lohmm(start, [start | Lazy_States], [_ | Lazy_Obs]),
     
@@ -51,14 +51,10 @@ lohmm(States, Obs) :-
     %printall(Lazy_Obs), print('--------'), nl,
     %%%
 
-    lazy_ground(Lazy_Obs, Obs),
-    
-    %%%
-    nl, print('START LAZY STATE GROUND...'), nl,
-    %print('ORIGINAL STATES:'), nl,
-    %printall(Lazy_States), print('--------'), nl,
-    %%%
+    lazy_ground(Lazy_Obs, Obs).
 
+ground_lohmm(States, Obs) :-
+    lohmm(Lazy_States, Obs),
     lazy_ground(Lazy_States, States).
 
 %
