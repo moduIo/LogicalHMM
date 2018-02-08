@@ -63,18 +63,8 @@ lohmm(State, [State|States], [Obs|Obss]) :-
     -> Obss = [], States = [], !
     ;  generateID(Next, ID1),  
        generateID(Obs, ID2),
-
-       print('Binding Next...'), nl,
-
-       bind(Next, ID1),  
-
-       print('Next = '), print(Next), nl,
-       print('Binding Obs...'), nl,
-       
+       bind(Next, ID1),
        bind(Obs, ID2),
-
-       print('Obs = '), print(Obs), nl, print('---------'), nl,
-       
        lohmm(Next, States, Obss)
     ).
 
@@ -95,14 +85,7 @@ lohmm(State, [State|States], [Obs|Obss]) :-
 trans(State, Obs, Next) :-
     msw(State, RuleID),         
     msw(RuleID, Rule),         
-    rule(Rule, State, (Obs, Next)),
-
-    %%%
-    print('Rule: '), print(Rule), nl, 
-    print('     State: '), print(State), nl, 
-    print('     Obs: '), print(Obs), nl, 
-    print('     Next: '), print(Next), nl.
-    %%%
+    rule(Rule, State, (Obs, Next)).
 
 %%
 % [bind/2] bind(Term, ID)
