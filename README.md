@@ -3,11 +3,10 @@ PRISM Implementation of a Logical Hidden Markov Model (LOHMM).  LOHMMs generaliz
 
 Formally:
 LM = (SIGMA, MU, DELTA, UPSILON)
-Where
-     SIGMA := logical alphabet
-     MU := selection (grounding) probability over SIGMA
-     DELTA := set of abstract transitions T = (p : H <- B emitting O)
-     UPSILON := set of abstract transitions encoding a prior distribution of states
+* SIGMA := logical alphabet
+* MU := selection (grounding) probability over SIGMA
+* DELTA := set of abstract transitions T = (p : H <- B emitting O)
+* UPSILON := set of abstract transitions encoding a prior distribution of states
      
 Models
 ---
