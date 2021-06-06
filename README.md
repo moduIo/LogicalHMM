@@ -9,8 +9,8 @@ LM = (SIGMA, MU, DELTA, UPSILON)
 * UPSILON := set of abstract transitions encoding a prior distribution of states
 
 References: 
-[1] "Logical Hidden Markov Models" - Kersting, De Raedt, Raiko; https://www.aaai.org/Papers/JAIR/Vol25/JAIR-2512.pdf 
-[2] Greenberg, S. (1988). "Using Unix: collected traces of 168 users", https://prism.ucalgary.ca/handle/1880/45929
+* [1] "Logical Hidden Markov Models" - Kersting, De Raedt, Raiko; https://www.aaai.org/Papers/JAIR/Vol25/JAIR-2512.pdf 
+* [2] Greenberg, S. (1988). "Using Unix: collected traces of 168 users", https://prism.ucalgary.ca/handle/1880/45929
      
 Models
 ---
